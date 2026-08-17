@@ -8,7 +8,6 @@ version = "0.1.0"
 description = "SO-101 embodiment and leader teleop for Isaac Lab Arena"
 requires-python = ">=3.10"
 dependencies = [
-    "isaaclab_arena",
     "lerobot[dataset,training]",
 ]
 
