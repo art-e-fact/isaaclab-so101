@@ -6,9 +6,9 @@ Reusable SO-101 follower embodiment (and optional leader-arm helpers) for
 ## Install
 
 ```bash
-/isaac-sim/python.sh -m pip install -e so101_arena
+/isaac-sim/python.sh -m pip install -e .
 # optional: leader teleop
-/isaac-sim/python.sh -m pip install -e "so101_arena[leader]"
+/isaac-sim/python.sh -m pip install -e ".[leader]"
 ```
 
 After ``SimulationApp`` is running, register once:
@@ -116,7 +116,7 @@ python -m shape_sorting.run_teleop \
   --embodiment so101_ik \
   --teleop_device gamepad   # or keyboard / spacemouse
 
-# Physical SO-101 leader → abs joints (needs so101_arena[leader])
+# Physical SO-101 leader → abs joints (needs arena-so101[leader])
 python -m shape_sorting.run_teleop \
   --viz kit --num_envs 1 \
   shape_sorting_test \

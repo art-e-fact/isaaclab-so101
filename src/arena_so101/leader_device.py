@@ -73,7 +73,7 @@ class SO101LeaderDevice(DeviceBase):
         except ImportError as exc:
             raise ImportError(
                 "SO-101 leader needs lerobot. Install with: "
-                "/isaac-sim/python.sh -m pip install -e 'so101_arena[leader]'"
+                "/isaac-sim/python.sh -m pip install -e '.[leader]'"
             ) from exc
 
         leader = SO101Leader(
