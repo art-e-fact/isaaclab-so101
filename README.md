@@ -1,17 +1,19 @@
 # arena-so101
 
-Reusable SO-101 follower embodiment (and optional leader-arm helpers) for
+SO-101 follower embodiment (and optional leader-arm helpers) for
 [Isaac Lab Arena](https://github.com/isaac-sim/IsaacLab-Arena).
 
 ## Install
 
+First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html)
+
 ```bash
-/isaac-sim/python.sh -m pip install -e .
-# optional: leader teleop
-/isaac-sim/python.sh -m pip install -e ".[leader]"
+uv add git+https://github.com/art-e-fact/isaaclab-so101.git
+# optional: for leader arm teleop
+uv add git+https://github.com/art-e-fact/isaaclab-so101.git#egg=arena-so101[leader]
 ```
 
-After ``SimulationApp`` is running, register once:
+After `SimulationApp` is running, register once:
 
 ```python
 import arena_so101
@@ -23,6 +25,7 @@ Then use like any Arena embodiment:
 ```python
 embodiment = asset_registry.get_asset_by_name("so101_abs_joint")(enable_cameras=True)
 ```
+See the [Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
 
 ## Embodiments
 
@@ -73,57 +76,6 @@ python -m arena_so101.generate_curobo_config \
 ```
 
 Add `--visualize` to inspect fitted spheres in Viser.
-
-## LeRobot recording
-
-`shape_sorting.generate_policy_demos` records successful scripted-policy
-rollouts directly as LeRobot v3. It stores six-joint state/action vectors and
-both the wrist and exterior RGB cameras. Failed attempts are discarded before
-they enter the dataset.
-
-```bash
-python -m shape_sorting.generate_policy_demos \
-  --policy_type shape_sorting.curobo_policy.CuroboPolicy \
-  --generation_num_trials 10 \
-  --output_dir ./datasets/curobo_shape_sorting \
-  --dataset_repo_id local/curobo_shape_sorting \
-  shape_sorting_test --embodiment so101_abs_joint
-```
-
-The output directory must not exist by default. Use `--resume` to append to a
-compatible dataset or `--overwrite` to recreate it. Camera rendering and
-streaming video encoding are enabled automatically; use
-`--disable_streaming_encoding` to encode from temporary PNGs instead.
-
-The YAML/JSON assets and `convert_hdf5_to_lerobot` module under
-`arena_so101.lerobot` are legacy support for existing HDF5/GR00T datasets.
-Direct LeRobot v3 recording does not use them.
-
-## Teleop
-
-```bash
-# Joint-space gamepad (absolute joints — recommended for SO-101 demos)
-python -m shape_sorting.run_teleop \
-  --viz kit --num_envs 1 \
-  shape_sorting_test \
-  --embodiment so101_abs_joint \
-  --teleop_device gamepad
-
-# SE(3) task-space (gamepad / keyboard / spacemouse)
-python -m shape_sorting.run_teleop \
-  --viz kit --num_envs 1 \
-  shape_sorting_test \
-  --embodiment so101_ik \
-  --teleop_device gamepad   # or keyboard / spacemouse
-
-# Physical SO-101 leader → abs joints (needs arena-so101[leader])
-python -m shape_sorting.run_teleop \
-  --viz kit --num_envs 1 \
-  shape_sorting_test \
-  --embodiment so101_abs_joint \
-  --teleop_device so101_leader \
-  --leader_port /dev/ttyACM0
-```
 
 ### Joint-space gamepad layout (`so101_abs_joint` + `gamepad`)
 
