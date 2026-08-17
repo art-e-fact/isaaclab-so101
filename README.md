@@ -1,7 +1,16 @@
-# arena-so101
+# SO-101 Embodiment for IsaacLab-Arena
+
+:construction: Under development. `main` is tracking the `main` branch of [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena).
 
 SO-101 follower embodiment (and optional leader-arm helpers) for
-[Isaac Lab Arena](https://github.com/isaac-sim/IsaacLab-Arena).
+[IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena).
+
+Environments using this embodiment:
+- [Arena Shape Sorting](https://github.com/art-e-fact/arena-shape-sorting/)
+
+Planned features:
+ - More natural teleop setup with gamepad and keyboard.
+ - Isaac Lab support.
 
 ## Install
 
@@ -25,7 +34,13 @@ Then use like any Arena embodiment:
 ```python
 embodiment = asset_registry.get_asset_by_name("so101_abs_joint")(enable_cameras=True)
 ```
-See the [Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
+
+See [example usage in an IsaacLab-Arena environment](https://github.com/art-e-fact/arena-shape-sorting/blob/25ea6bfea43a5134570e924fb3cdacb663f59472/arena_envs/src/shape_sorting/shape_sorting_env.py#L131).
+
+See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
+
+> TODO: Add a simple example environment that uses this embodiment.
+> TODO: Document the camera configuration.
 
 ## Embodiments
 
@@ -38,12 +53,6 @@ See the [Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pa
 USD joints: `Rotation`, `Pitch`, `Elbow`, `Wrist_Pitch`, `Wrist_Roll`, `Jaw`.
 The robot USD comes from the [Sim-to-Real-SO-101-Workshop](https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop).
 
-Wrist camera is a Python `CameraCfg` on `Robot/gripper/gripper_cam`
-(enabled with `enable_cameras=True`). Shape-sorting also enables a fixed
-env-frame `external_camera` (over-shoulder / table view) beside the wrist cam.
-Tune the external view by overriding `camera_config.external_camera.offset`
-(`pos` + `rot`); there is no prim look-at on `CameraCfg` — shape-sorting uses
-an eye/target helper to derive the quaternion.
 
 `so101_ik` is a 5-DOF arm: DLS tracks EE position and does best-effort orientation on the 6D pose command.
 
@@ -57,6 +66,8 @@ self-collision ignore matrix, locked Jaw, home pose) under
 # Inside the Isaac Sim / Arena env (needs CUDA + nvidia-curobo)
 python -m arena_so101.generate_curobo_config --headless
 ```
+
+> TODO: Document manually authoring collision spheres.
 
 Outputs:
 
@@ -94,3 +105,7 @@ Speed is `delta_scale` on `GamepadCfg` (default `0.03` rad/step at full deflecti
 
 `so101_leader` emits a (6,) absolute joint vector for `so101_abs_joint`. Also works with
 Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.
+
+## Acknowledgments
+
+We used the SO-101 USD model from the [Sim-to-Real-SO-101-Workshop](https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/index.html).
