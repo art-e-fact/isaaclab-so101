@@ -109,3 +109,21 @@ Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.
 ## Acknowledgments
 
 We used the SO-101 USD model from the [Sim-to-Real-SO-101-Workshop](https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/index.html).
+
+## License
+
+Licensed under either of
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+- MIT license ([LICENSE-MIT](LICENSE-MIT))
+
+at your option.
+
+Exception: `src/arena_so101/embodiments/data/SO-ARM101-USD.usd` is Copyright NVIDIA
+Corporation & Affiliates, from the
+[Sim-to-Real-SO-101-Workshop](https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop),
+and is licensed under Apache-2.0 only.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for
+inclusion in this work by you, as defined in the Apache-2.0 license, shall be dual
+licensed as above, without any additional terms or conditions.
