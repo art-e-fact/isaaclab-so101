@@ -1,3 +1,5 @@
 # Python
 __pycache__/
 *.egg-info
+# Local notes (issues.local/, etc.)
+*.local/
