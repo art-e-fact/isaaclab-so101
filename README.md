@@ -51,11 +51,14 @@ from isaaclab_arena.assets.registries import AssetRegistry
 embodiment = AssetRegistry().get_asset_by_name("so101_abs_joint")(enable_cameras=True)
 ```
 
-See [example usage in an IsaacLab-Arena environment](https://github.com/art-e-fact/arena-shape-sorting/blob/25ea6bfea43a5134570e924fb3cdacb663f59472/arena_envs/src/shape_sorting/shape_sorting_env.py#L131).
+Arena finds external environments by path (`--external_environment_class_path module:Class`), and the
+environment registers the SO-101 inside its `build()`. [`examples/`](examples/) has a minimal one, as a uv
+project that installs Isaac Sim, Isaac Lab and Arena with `uv sync` and teleoperates the arm in Arena's lift
+task. [arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/blob/25ea6bfea43a5134570e924fb3cdacb663f59472/arena_envs/src/shape_sorting/shape_sorting_env.py#L131)
+is a full one.
 
 See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
 
-> TODO: Add a simple example environment that uses this embodiment.
 > TODO: Document the camera configuration.
 
 ## Embodiments
