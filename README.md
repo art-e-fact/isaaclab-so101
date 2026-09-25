@@ -16,11 +16,17 @@ Planned features:
 
 First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html)
 
+Requires Python 3.12 (same as Arena).
+
 ```bash
-uv add git+https://github.com/art-e-fact/isaaclab-so101.git
-# optional: for leader arm teleop
-uv add git+https://github.com/art-e-fact/isaaclab-so101.git#egg=arena-so101[leader]
+uv add "arena-so101 @ git+https://github.com/art-e-fact/isaaclab-so101.git"
+# optional extras: `lerobot` (LeRobot dataset recorder), `leader` (physical leader arm teleop)
+uv add "arena-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
 ```
+
+The base package has no Python dependencies; Isaac Sim, Isaac Lab and Arena come from your
+environment. The extras pin `lerobot>=0.6.1,<0.7`. If a lerobot upgrade would replace Isaac Sim's
+`torch`, install with a constraints file that pins your Isaac Sim `torch`/`torchvision`.
 
 After `SimulationApp` is running, register once:
 

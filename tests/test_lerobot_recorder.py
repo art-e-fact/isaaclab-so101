@@ -154,7 +154,7 @@ def test_existing_output_requires_explicit_mode(tmp_path, fake_lerobot):
 
 def test_writes_reopenable_lerobot_dataset(tmp_path, monkeypatch):
     monkeypatch.setenv("HF_DATASETS_CACHE", str(tmp_path / "hf_cache"))
-    from lerobot.datasets import LeRobotDataset
+    LeRobotDataset = pytest.importorskip("lerobot.datasets").LeRobotDataset
 
     root = tmp_path / "dataset"
     image_shape = (64, 64, 3)
