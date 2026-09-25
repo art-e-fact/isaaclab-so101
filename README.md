@@ -32,7 +32,7 @@ After `SimulationApp` is running, register once:
 
 ```python
 import arena_so101
-arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_leader, gamepad
+arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_leader, so101_gamepad
 ```
 
 Joint names, limits, the home pose, Jaw open/close targets and asset paths are exported as
@@ -99,7 +99,7 @@ python -m arena_so101.generate_curobo_config \
 
 Add `--visualize` to inspect fitted spheres in Viser.
 
-### Joint-space gamepad layout (`so101_abs_joint` + `gamepad`)
+### Joint-space gamepad layout (`so101_abs_joint` + `so101_gamepad`)
 
 Sticks/triggers integrate into a held absolute joint target. Releasing sticks holds pose.
 
@@ -112,7 +112,10 @@ Sticks/triggers integrate into a held absolute joint target. Releasing sticks ho
 | Right stick right/left | `Wrist_Roll` |
 | X | `Jaw` toggle open / close (absolute limits) |
 
-Speed is `delta_scale` on `GamepadCfg` (default `0.03` rad/step at full deflection).
+Speed is `delta_scale` on `SO101GamepadCfg` (default `0.03` rad/step at full deflection).
+
+`so101_gamepad` with `so101_ik` uses Isaac Lab's SE(3) gamepad layout. The device was named
+`gamepad` before; pass `--teleop_device so101_gamepad` now.
 
 `so101_leader` emits a (6,) absolute joint vector, so it pairs only with `so101_abs_joint`. Also works with
 Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.

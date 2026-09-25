@@ -174,7 +174,7 @@ class SO101JointGamepadCfg(DeviceCfg):
     delta_scale: float = 0.03  # rad/step at full stick/trigger deflection
     dead_zone: float = 0.01
     joint_signs: tuple[float, ...] = _DEFAULT_JOINT_SIGNS
-    # Reset target; GamepadCfg fills this from the embodiment's init_state.
+    # Reset target; SO101GamepadCfg fills this from the embodiment's init_state.
     default_joint_pos: tuple[float, ...] = tuple(HOME_JOINT_POS[name] for name in SIM_JOINT_NAMES)
     retargeters: None = None
     # Concrete device class (avoid "{DIR}...." so create_teleop_device cannot

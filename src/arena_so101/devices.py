@@ -1,8 +1,9 @@
 """Teleop device registrations for SO-101 (leader + gamepad).
 
 Arena's built-in device library has keyboard / spacemouse / openxr but not
-gamepad. We register ``gamepad`` here so ``@register_retargeter`` pairs with
-``so101_ik`` / ``so101_abs_joint`` resolve through ArenaEnvBuilder.
+gamepad. We register ``so101_gamepad`` here so ``@register_retargeter`` pairs with
+``so101_ik`` / ``so101_abs_joint`` resolve through ArenaEnvBuilder. The name is
+SO-101 specific so it cannot collide with a generic Arena ``gamepad`` device.
 
 ``so101_leader`` returns an Isaac Lab ``DeviceCfg`` that emits absolute joint
 targets for ``so101_abs_joint`` (not SE3).
@@ -36,15 +37,15 @@ def _resolve_joint_pos(joint_pos: dict[str, float]) -> tuple[float, ...]:
 
 
 @register_device
-class GamepadCfg(TeleopDeviceBase):
-    """Registered as ``gamepad``.
+class SO101GamepadCfg(TeleopDeviceBase):
+    """Registered as ``so101_gamepad``.
 
     Layout depends on the paired embodiment:
     - ``so101_abs_joint`` → absolute joint gamepad (:class:`SO101JointGamepadCfg`)
     - ``so101_ik`` → SE(3) gamepad (:class:`Se3GamepadCfg`)
     """
 
-    name = "gamepad"
+    name = "so101_gamepad"
 
     def __init__(
         self,
@@ -75,7 +76,7 @@ class GamepadCfg(TeleopDeviceBase):
                 rot_sensitivity=self.rot_sensitivity,
             )
         raise ValueError(
-            f"Registered gamepad has no layout for embodiment {emb_name!r}. "
+            f"so101_gamepad has no layout for embodiment {emb_name!r}. "
             "Use --embodiment so101_abs_joint (joint-space) or so101_ik (SE3)."
         )
 
