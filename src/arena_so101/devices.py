@@ -87,10 +87,21 @@ class SO101LeaderCfg(TeleopDeviceBase):
 
     name = "so101_leader"
 
-    def __init__(self, sim_device: str | None = None, port: str = "/dev/ttyACM0", leader_id: str = "leader"):
+    def __init__(
+        self,
+        sim_device: str | None = None,
+        port: str = "/dev/ttyACM0",
+        leader_id: str = "leader",
+        leader_recalibrate: bool = False,
+        calibration_dir: str | None = None,
+        num_read_retries: int = 2,
+    ):
         super().__init__(sim_device=sim_device)
         self.port = port
         self.leader_id = leader_id
+        self.leader_recalibrate = leader_recalibrate
+        self.calibration_dir = calibration_dir
+        self.num_read_retries = num_read_retries
 
     def get_device_cfg(
         self, pipeline_builder: Callable | None = None, embodiment: object | None = None
@@ -98,5 +109,8 @@ class SO101LeaderCfg(TeleopDeviceBase):
         return SO101LeaderDeviceCfg(
             port=self.port,
             leader_id=self.leader_id,
+            leader_recalibrate=self.leader_recalibrate,
+            calibration_dir=self.calibration_dir,
+            num_read_retries=self.num_read_retries,
             sim_device=self.sim_device or "cpu",
         )

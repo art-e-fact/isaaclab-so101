@@ -120,6 +120,11 @@ Speed is `delta_scale` on `SO101GamepadCfg` (default `0.03` rad/step at full def
 `so101_leader` emits a (6,) absolute joint vector, so it pairs only with `so101_abs_joint`. Also works with
 Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.
 
+`SO101LeaderCfg` options: `port`, `leader_id`, `leader_recalibrate`, `calibration_dir`
+(default `~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/`, file `<leader_id>.json`)
+and `num_read_retries`. A failed bus read holds the last pose instead of ending the session
+(it raises after `max_consecutive_read_failures`, default 10, on `SO101LeaderDeviceCfg`).
+
 ## Acknowledgments
 
 We used the SO-101 USD model from the [Sim-to-Real-SO-101-Workshop](https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/index.html).
