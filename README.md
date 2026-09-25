@@ -58,7 +58,7 @@ See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Aren
 | Name | Actions |
 |------|---------|
 | `so101_abs_joint` | Absolute joint positions (leader + joint-space gamepad) |
-| `so101_rel_joint` | Relative joint positions |
+| `so101_rel_joint` | Relative joint positions (for policies; no teleop device pairing) |
 | `so101_ik` | Relative SE(3) differential IK + binary Jaw (keyboard / gamepad / spacemouse) |
 
 USD joints: `Rotation`, `Pitch`, `Elbow`, `Wrist_Pitch`, `Wrist_Roll`, `Jaw`.
@@ -114,7 +114,7 @@ Sticks/triggers integrate into a held absolute joint target. Releasing sticks ho
 
 Speed is `delta_scale` on `GamepadCfg` (default `0.03` rad/step at full deflection).
 
-`so101_leader` emits a (6,) absolute joint vector for `so101_abs_joint`. Also works with
+`so101_leader` emits a (6,) absolute joint vector, so it pairs only with `so101_abs_joint`. Also works with
 Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.
 
 ## Acknowledgments
