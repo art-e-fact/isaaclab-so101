@@ -23,7 +23,8 @@ class SO101JointGamepad(DeviceBase):
     """Gamepad controller emitting a (6,) absolute joint command for ``so101_abs_joint``.
 
     Sticks/triggers integrate into a held joint target. X toggles jaw open/close
-    to absolute limits (no wind-up against a gripped object).
+    to absolute limits (no wind-up against a gripped object), once per press. After a
+    reset the jaw holds its reset pose until the next X press.
     """
 
     def __init__(self, cfg: SO101JointGamepadCfg):
@@ -52,14 +53,12 @@ class SO101JointGamepad(DeviceBase):
         )
 
         self._create_key_bindings()
-        self._lt_val = 0.0
-        self._rt_val = 0.0
-        self._rotation_rate = 0.0
         # (positive, negative) x joint index for sticks (joints 1–4).
         self._delta_joint_raw = np.zeros([2, 6], dtype=np.float32)
-        self._joint_targets = self._default_joint_pos.copy()
-        self._close_gripper = False
+        # Whether each input is held (value > 0.5), so X and callbacks act once per press.
+        self._pressed: dict[carb.input.GamepadInput, bool] = {}
         self._additional_callbacks: dict[str | carb.input.GamepadInput, Callable] = {}
+        self.reset()
 
     def __del__(self):
         try:
@@ -94,7 +93,8 @@ class SO101JointGamepad(DeviceBase):
         self._rotation_rate = 0.0
         self._delta_joint_raw.fill(0.0)
         self._joint_targets = self._default_joint_pos.copy()
-        self._close_gripper = False
+        # The jaw target stays at its reset pose; the first X press flips it to the other limit.
+        self._close_gripper = bool(self._joint_targets[5] < (JAW_CLOSE_RAD + JAW_OPEN_RAD) / 2)
 
     def add_callback(self, key: str | carb.input.GamepadInput, func: Callable):
         self._additional_callbacks[key] = func
@@ -110,7 +110,6 @@ class SO101JointGamepad(DeviceBase):
             _JOINT_LIMITS_RAD[:5, 0],
             _JOINT_LIMITS_RAD[:5, 1],
         )
-        self._joint_targets[5] = JAW_CLOSE_RAD if self._close_gripper else JAW_OPEN_RAD
 
         return torch.tensor(self._joint_targets, dtype=torch.float32, device=self._sim_device)
 
@@ -119,8 +118,14 @@ class SO101JointGamepad(DeviceBase):
         if abs(cur_val) < self.dead_zone:
             cur_val = 0.0
 
-        if event.input == carb.input.GamepadInput.X and cur_val > 0.5:
+        # Act on the press edge only: an analog ramp (0.6 -> 1.0) or the release is not a new press.
+        pressed = cur_val > 0.5
+        just_pressed = pressed and not self._pressed.get(event.input, False)
+        self._pressed[event.input] = pressed
+
+        if event.input == carb.input.GamepadInput.X and just_pressed:
             self._close_gripper = not self._close_gripper
+            self._joint_targets[5] = JAW_CLOSE_RAD if self._close_gripper else JAW_OPEN_RAD
 
         if event.input == carb.input.GamepadInput.RIGHT_TRIGGER:
             self._rt_val = cur_val
@@ -133,7 +138,7 @@ class SO101JointGamepad(DeviceBase):
             direction, joint_idx, value = self._INPUT_STICK_VALUE_MAPPING[event.input]
             self._delta_joint_raw[direction, joint_idx] = value * cur_val
 
-        if event.input in self._additional_callbacks:
+        if event.input in self._additional_callbacks and just_pressed:
             self._additional_callbacks[event.input]()
 
         return True

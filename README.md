@@ -113,7 +113,7 @@ Sticks/triggers integrate into a held absolute joint target. Releasing sticks ho
 | Left stick left/right | `Elbow` |
 | Right stick up/down | `Wrist_Pitch` |
 | Right stick right/left | `Wrist_Roll` |
-| X | `Jaw` toggle open / close (absolute limits) |
+| X | `Jaw` toggle open / close (absolute limits). After a reset the jaw keeps its reset pose until the first press. |
 
 Speed is `delta_scale` on `SO101GamepadCfg` (default `0.03` rad/step at full deflection).
 
