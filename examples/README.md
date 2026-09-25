@@ -19,6 +19,8 @@ Isaac Sim asks you to accept its EULA on first start. `OMNI_KIT_ACCEPT_EULA=YES`
 ## Teleoperate
 
 Opens the Isaac Sim window. The keyboard needs no extra hardware; its key bindings print in the terminal.
+The first launch compiles RTX shaders, which can take several minutes with no terminal output after
+`AppLauncher initialization complete`. They are cached in the venv, so later launches take seconds.
 
 ```bash
 uv run python -m isaaclab_arena.scripts.imitation_learning.teleop --viz kit \
