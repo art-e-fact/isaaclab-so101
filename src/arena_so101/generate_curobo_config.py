@@ -30,38 +30,24 @@ Examples::
 from __future__ import annotations
 
 import argparse
-import math
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
+from arena_so101.constants import CUROBO_ROBOT_YML, HOME_JOINT_POS, JAW_CLOSE_RAD, JAW_OPEN_RAD, USD_PATH
+
 # ---------------------------------------------------------------------------
 # Paths & SO-101 constants (workshop USD / arena_so101.embodiments.so101)
 # ---------------------------------------------------------------------------
 
-_PKG_DIR = Path(__file__).resolve().parent
-_DEFAULT_USD = _PKG_DIR / "embodiments" / "data" / "SO-ARM101-USD.usd"
-_DEFAULT_SPHERE_COLLIDERS = (
-    _PKG_DIR / "embodiments" / "data" / "curobo_sphere_colliders.usda"
-)
-_DEFAULT_OUTPUT_DIR = _PKG_DIR / "embodiments" / "data" / "curobo"
+_DEFAULT_USD = USD_PATH
+_DEFAULT_SPHERE_COLLIDERS = USD_PATH.parent / "curobo_sphere_colliders.usda"
+_DEFAULT_OUTPUT_DIR = CUROBO_ROBOT_YML.parent
 
 # Prim-name substring marking authored cuRobo collision spheres in the USDA.
 _CUROBO_SPHERE_MARKER = "curobo_collider_sphere"
 
-# Must match ArticulationCfg init_state in embodiments/so101.py.
-_HOME_JOINT_POS: dict[str, float] = {
-    "Rotation": -0.2736,
-    "Pitch": -0.6109,
-    "Elbow": -0.0745,
-    "Wrist_Pitch": 1.5148,
-    "Wrist_Roll": -1.6034,
-    "Jaw": -0.1465,
-}
-
-_JAW_OPEN_RAD = math.radians(100.0)
-_JAW_CLOSE_RAD = math.radians(-10.0)
 
 # Matches ImplicitActuatorCfg.effort_limit_sim on the SO-101 embodiment.
 _DEFAULT_JOINT_EFFORT = 30.0
@@ -383,7 +369,7 @@ def patch_so101_robot_yaml(
     kin["urdf_path"] = str(urdf_path.resolve())
     kin["asset_root_path"] = str(asset_path.resolve())
     kin["tool_frames"] = [tool_frame]
-    kin["lock_joints"] = {jaw_joint: _JAW_OPEN_RAD}
+    kin["lock_joints"] = {jaw_joint: JAW_OPEN_RAD}
 
     # Grasp attach frame (same pattern as franka.yml) — parent is the EE link.
     # Builder may serialize these fields as explicit nulls; setdefault won't replace None.
@@ -418,10 +404,10 @@ def patch_so101_robot_yaml(
     if joint_names:
         defaults = []
         for name in joint_names:
-            if name in _HOME_JOINT_POS:
-                defaults.append(float(_HOME_JOINT_POS[name]))
+            if name in HOME_JOINT_POS:
+                defaults.append(float(HOME_JOINT_POS[name]))
             elif name == jaw_joint:
-                defaults.append(float(_JAW_OPEN_RAD))
+                defaults.append(float(JAW_OPEN_RAD))
             else:
                 # Keep builder mid-range if we don't know this joint.
                 existing = cspace.get("default_joint_position")
@@ -436,10 +422,10 @@ def patch_so101_robot_yaml(
     data["arena_so101"] = {
         "ee_link_name": tool_frame,
         "gripper_joint_names": [jaw_joint],
-        "gripper_open_joint_pos": {jaw_joint: _JAW_OPEN_RAD},
-        "gripper_closed_joint_pos": {jaw_joint: _JAW_CLOSE_RAD},
+        "gripper_open_joint_pos": {jaw_joint: JAW_OPEN_RAD},
+        "gripper_closed_joint_pos": {jaw_joint: JAW_CLOSE_RAD},
         "hand_link_names": [tool_frame],
-        "home_joint_pos": dict(_HOME_JOINT_POS),
+        "home_joint_pos": dict(HOME_JOINT_POS),
     }
 
     output_yml.parent.mkdir(parents=True, exist_ok=True)

@@ -10,15 +10,17 @@ import math
 
 import torch
 
-# Sim USD joint order (must match ArticulationCfg / action cfg).
-SIM_JOINT_NAMES = (
-    "Rotation",
-    "Pitch",
-    "Elbow",
-    "Wrist_Pitch",
-    "Wrist_Roll",
-    "Jaw",
-)
+# Re-exported for existing ``arena_so101.mapping`` imports.
+from arena_so101.constants import JOINT_LIMITS_DEG, JOINT_LIMITS_RAD, SIM_JOINT_NAMES
+
+__all__ = [
+    "JOINT_LIMITS_RAD",
+    "LEROBOT_JOINT_KEYS",
+    "SIM_JOINT_NAMES",
+    "leader_dict_to_sim_radians",
+    "motor_norm_to_sim_radians",
+    "sim_radians_to_motor_norm",
+]
 
 # LeRobot leader keys in the same order.
 LEROBOT_JOINT_KEYS = (
@@ -28,21 +30,6 @@ LEROBOT_JOINT_KEYS = (
     "wrist_flex.pos",
     "wrist_roll.pos",
     "gripper.pos",
-)
-
-# USD joint limits in degrees (from NVIDIA SO-101 workshop).
-_USD_LIMITS_DEG = (
-    (-110.0, 110.0),  # shoulder_pan / Rotation
-    (-100.0, 100.0),  # shoulder_lift / Pitch
-    (-100.0, 90.0),  # elbow_flex / Elbow
-    (-95.0, 95.0),  # wrist_flex / Wrist_Pitch
-    (-160.0, 160.0),  # wrist_roll / Wrist_Roll
-    (-10.0, 100.0),  # gripper / Jaw
-)
-
-# Same limits in radians (for absolute teleop clamping).
-JOINT_LIMITS_RAD = tuple(
-    (math.radians(lo), math.radians(hi)) for lo, hi in _USD_LIMITS_DEG
 )
 
 
@@ -61,12 +48,14 @@ def leader_dict_to_sim_radians(
 
 
 def motor_norm_to_sim_radians(raw_values: torch.Tensor) -> torch.Tensor:
-    """Map LeRobot motor-norm degrees → sim radians.
+    """Map LeRobot normalized positions (``use_degrees=False``) → sim radians.
 
-    Arm joints are reported in [-100, 100]; gripper in [0, 100].
+    LeRobot reports arm joints in [-100, 100] and the gripper in [0, 100], scaled to the
+    range swept during calibration (unitless, not degrees). We stretch that range linearly
+    onto the USD joint limits.
     """
-    mins = torch.tensor([lo for lo, _ in _USD_LIMITS_DEG], dtype=raw_values.dtype, device=raw_values.device)
-    maxs = torch.tensor([hi for _, hi in _USD_LIMITS_DEG], dtype=raw_values.dtype, device=raw_values.device)
+    mins = torch.tensor([lo for lo, _ in JOINT_LIMITS_DEG], dtype=raw_values.dtype, device=raw_values.device)
+    maxs = torch.tensor([hi for _, hi in JOINT_LIMITS_DEG], dtype=raw_values.dtype, device=raw_values.device)
 
     normalized = torch.zeros_like(raw_values)
     normalized[:-1] = (raw_values[:-1] + 100.0) / 200.0
@@ -78,8 +67,8 @@ def motor_norm_to_sim_radians(raw_values: torch.Tensor) -> torch.Tensor:
 
 def sim_radians_to_motor_norm(sim_radians: torch.Tensor) -> torch.Tensor:
     """Inverse of :func:`motor_norm_to_sim_radians` (for dataset export)."""
-    mins = torch.tensor([lo for lo, _ in _USD_LIMITS_DEG], dtype=sim_radians.dtype, device=sim_radians.device)
-    maxs = torch.tensor([hi for _, hi in _USD_LIMITS_DEG], dtype=sim_radians.dtype, device=sim_radians.device)
+    mins = torch.tensor([lo for lo, _ in JOINT_LIMITS_DEG], dtype=sim_radians.dtype, device=sim_radians.device)
+    maxs = torch.tensor([hi for _, hi in JOINT_LIMITS_DEG], dtype=sim_radians.dtype, device=sim_radians.device)
 
     mapped_deg = sim_radians * (180.0 / math.pi)
     normalized = (mapped_deg - mins) / (maxs - mins)

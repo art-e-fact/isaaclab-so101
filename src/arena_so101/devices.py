@@ -18,6 +18,7 @@ from isaaclab.devices.device_base import DeviceCfg
 from isaaclab_arena.assets.device_library import TeleopDeviceBase
 from isaaclab_arena.assets.register import register_device
 
+from arena_so101.constants import SIM_JOINT_NAMES
 from arena_so101.joint_gamepad_device import SO101JointGamepadCfg
 from arena_so101.leader_device import SO101LeaderDeviceCfg
 
@@ -50,8 +51,11 @@ class GamepadCfg(TeleopDeviceBase):
     ) -> DeviceCfg:
         emb_name = getattr(embodiment, "name", None)
         if emb_name == "so101_abs_joint":
+            # Reset to the embodiment's current init pose (tracks set_joint_initial_pos).
+            joint_pos = embodiment.scene_config.robot.init_state.joint_pos
             return SO101JointGamepadCfg(
                 delta_scale=self.delta_scale,
+                default_joint_pos=tuple(float(joint_pos[name]) for name in SIM_JOINT_NAMES),
                 sim_device=self.sim_device or "cpu",
             )
         if emb_name == "so101_ik":

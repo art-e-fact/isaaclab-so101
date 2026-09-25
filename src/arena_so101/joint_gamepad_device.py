@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import weakref
 from collections.abc import Callable
 
@@ -14,16 +13,9 @@ import omni
 from isaaclab.devices.device_base import DeviceBase, DeviceCfg
 from isaaclab.utils import configclass
 
-from arena_so101.mapping import JOINT_LIMITS_RAD, SIM_JOINT_NAMES
+from arena_so101.constants import HOME_JOINT_POS, JAW_CLOSE_RAD, JAW_OPEN_RAD, JOINT_LIMITS_RAD, SIM_JOINT_NAMES
 
-# Match ArticulationCfg.init_state in embodiments.so101.
-_DEFAULT_JOINT_POS = np.array(
-    [-0.2736, -0.6109, -0.0745, 1.5148, -1.6034, -0.1465],
-    dtype=np.float32,
-)
 _JOINT_LIMITS_RAD = np.asarray(JOINT_LIMITS_RAD, dtype=np.float32)
-_JAW_OPEN_RAD = math.radians(100.0)
-_JAW_CLOSE_RAD = math.radians(-10.0)
 _DEFAULT_JOINT_SIGNS = (1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
 
@@ -118,7 +110,7 @@ class SO101JointGamepad(DeviceBase):
             _JOINT_LIMITS_RAD[:5, 0],
             _JOINT_LIMITS_RAD[:5, 1],
         )
-        self._joint_targets[5] = _JAW_CLOSE_RAD if self._close_gripper else _JAW_OPEN_RAD
+        self._joint_targets[5] = JAW_CLOSE_RAD if self._close_gripper else JAW_OPEN_RAD
 
         return torch.tensor(self._joint_targets, dtype=torch.float32, device=self._sim_device)
 
@@ -182,7 +174,8 @@ class SO101JointGamepadCfg(DeviceCfg):
     delta_scale: float = 0.03  # rad/step at full stick/trigger deflection
     dead_zone: float = 0.01
     joint_signs: tuple[float, ...] = _DEFAULT_JOINT_SIGNS
-    default_joint_pos: tuple[float, ...] = tuple(float(x) for x in _DEFAULT_JOINT_POS)
+    # Reset target; GamepadCfg fills this from the embodiment's init_state.
+    default_joint_pos: tuple[float, ...] = tuple(HOME_JOINT_POS[name] for name in SIM_JOINT_NAMES)
     retargeters: None = None
     # Concrete device class (avoid "{DIR}...." so create_teleop_device cannot
     # resolve to the wrong module if the cfg is nested under DevicesCfg).

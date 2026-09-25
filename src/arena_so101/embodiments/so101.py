@@ -9,7 +9,6 @@ wrist RGB on ``Robot/gripper/gripper_cam``, plus a fixed env-frame
 from __future__ import annotations
 
 import math
-from pathlib import Path
 
 import torch
 import isaaclab.envs.mdp as mdp_isaac_lab
@@ -37,23 +36,14 @@ from isaaclab_arena.embodiments.embodiment_base import EmbodimentBase
 from isaaclab_arena.utils.cameras import ArenaCameraCfg
 from isaaclab_arena.utils.pose import Pose
 
-from arena_so101.mapping import SIM_JOINT_NAMES
-
-_DATA_DIR = Path(__file__).parent / "data"
-_USD_PATH = str(_DATA_DIR / "SO-ARM101-USD.usd")
-
-# Arm joints only (Jaw is a separate binary gripper term for IK).
-_ARM_JOINT_NAMES = (
-    "Rotation",
-    "Pitch",
-    "Elbow",
-    "Wrist_Pitch",
-    "Wrist_Roll",
+from arena_so101.constants import (
+    ARM_JOINT_NAMES,
+    HOME_JOINT_POS,
+    JAW_CLOSE_RAD,
+    JAW_OPEN_RAD,
+    SIM_JOINT_NAMES,
+    USD_PATH,
 )
-
-# USD Jaw limits from the NVIDIA workshop (degrees → radians).
-_JAW_OPEN_RAD = math.radians(100.0)
-_JAW_CLOSE_RAD = math.radians(-10.0)
 
 def _quat_xyzw_from_euler_deg(roll: float, pitch: float, yaw: float) -> tuple[float, float, float, float]:
     """Intrinsic XYZ Euler (degrees) → quaternion (x, y, z, w)."""
@@ -70,7 +60,7 @@ _YAW_90 = _quat_xyzw_from_euler_deg(0.0, 0.0, 90.0)
 
 _SO101_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path=_USD_PATH,
+        usd_path=str(USD_PATH),
         activate_contact_sensors=False,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -86,14 +76,7 @@ _SO101_CFG = ArticulationCfg(
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.0),
         rot=_YAW_90,
-        joint_pos={
-            "Rotation": -0.2736,
-            "Pitch": -0.6109,
-            "Elbow": -0.0745,
-            "Wrist_Pitch": 1.5148,
-            "Wrist_Roll": -1.6034,
-            "Jaw": -0.1465,
-        },
+        joint_pos=dict(HOME_JOINT_POS),
     ),
     # Gear-aware gains from the NVIDIA workshop.
     actuators={
@@ -188,7 +171,7 @@ class SO101IKActionsCfg:
 
     arm_action: ActionTermCfg = DifferentialInverseKinematicsActionCfg(
         asset_name="robot",
-        joint_names=list(_ARM_JOINT_NAMES),
+        joint_names=list(ARM_JOINT_NAMES),
         body_name="gripper",
         controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=True, ik_method="dls"),
         scale=0.5,
@@ -198,8 +181,8 @@ class SO101IKActionsCfg:
     gripper_action: ActionTermCfg = BinaryJointPositionActionCfg(
         asset_name="robot",
         joint_names=["Jaw"],
-        open_command_expr={"Jaw": _JAW_OPEN_RAD},
-        close_command_expr={"Jaw": _JAW_CLOSE_RAD},
+        open_command_expr={"Jaw": JAW_OPEN_RAD},
+        close_command_expr={"Jaw": JAW_CLOSE_RAD},
     )
 
 

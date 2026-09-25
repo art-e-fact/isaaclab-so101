@@ -35,6 +35,9 @@ import arena_so101
 arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_leader, gamepad
 ```
 
+Joint names, limits, the home pose, Jaw open/close targets and asset paths are exported as
+plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, USD_PATH`.
+
 Then use like any Arena embodiment:
 
 ```python
