@@ -35,5 +35,6 @@ def test_isaac_fixture_left_no_stub_built_modules():
     # Runs after the tests above (file order): the stub-built modules must be gone.
     assert "arena_so101.devices" not in sys.modules
     assert "arena_so101.embodiments" not in sys.modules
+    assert "arena_so101.assets" not in sys.modules
     assert "carb" not in sys.modules
     assert "isaaclab" not in sys.modules

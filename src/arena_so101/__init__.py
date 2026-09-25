@@ -1,6 +1,7 @@
-"""SO-101 for Isaac Lab Arena.
+"""SO-101 for Isaac Lab and Isaac Lab Arena.
 
-Call :func:`register` after ``SimulationApp`` starts (imports Isaac Lab).
+Arena: call :func:`register` after ``SimulationApp`` starts (imports Isaac Lab).
+Isaac Lab alone: import the robot configs from :mod:`arena_so101.assets` after the app starts.
 The constants below are pure Python and safe to import anywhere.
 """
 

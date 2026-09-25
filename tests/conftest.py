@@ -12,7 +12,14 @@ import pytest
 
 # arena_so101 modules that import Isaac Sim / Isaac Lab / Arena at module level.
 # ``embodiments`` is one because its __init__ imports ``embodiments.so101``.
-_ISAAC_DEPENDENT = ("joint_gamepad_device", "leader_device", "devices", "embodiments", "embodiments.so101")
+_ISAAC_DEPENDENT = (
+    "assets",
+    "joint_gamepad_device",
+    "leader_device",
+    "devices",
+    "embodiments",
+    "embodiments.so101",
+)
 
 
 def _module(name: str) -> ModuleType:
