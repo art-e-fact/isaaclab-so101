@@ -1,7 +1,7 @@
 # SO-101 in Isaac Lab Arena
 
 `so101_table.py` puts the SO-101 on a table with a cube to lift, using Arena's lift task. This directory is a
-uv project: `uv sync` installs Isaac Sim, Isaac Lab, Arena and arena-so101 (from `..`, editable). No Docker,
+uv project: `uv sync` installs Isaac Sim, Isaac Lab, Arena and arena-so101 (from `../..`, editable). No Docker,
 no clone of Arena.
 
 Requirements: Linux x86_64, a GPU and driver that
@@ -9,7 +9,7 @@ Requirements: Linux x86_64, a GPU and driver that
 [uv](https://docs.astral.sh/uv/getting-started/installation/), and about 20 GB of disk.
 
 ```bash
-cd examples
+cd examples/arena
 uv sync                        # the first run downloads Isaac Sim, about 10 GB
 uv run python smoke_test.py    # headless: builds the env with each embodiment, steps it, checks the reset
 ```

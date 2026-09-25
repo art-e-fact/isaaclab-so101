@@ -51,7 +51,7 @@ url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
 [tool.uv.sources]
-arena-so101 = { path = "..", editable = true }
+arena-so101 = { path = "../..", editable = true }
 # arena-shape-sorting runs this Arena commit. Arena dropped its Isaac Lab wheel install on 2026-09-03
 # (3e60147); a newer rev needs Isaac Lab from git instead, see README.
 isaaclab-arena = { git = "https://github.com/isaac-sim/IsaacLab-Arena.git", rev = "4607c27bd7ac2f8ab2f449e1e2c65989b064af79" }

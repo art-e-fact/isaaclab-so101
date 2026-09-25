@@ -1,20 +1,21 @@
-# SO-101 Embodiment for IsaacLab-Arena
+# SO-101 for Isaac Lab and IsaacLab-Arena
 
 :construction: Under development. `main` is tracking the `main` branch of [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena).
 
 SO-101 follower embodiment (and optional leader-arm helpers) for
-[IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena).
+[IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena), and the robot configs on their own for plain
+[Isaac Lab](#isaac-lab-without-arena).
 
 Environments using this embodiment:
 - [Arena Shape Sorting](https://github.com/art-e-fact/arena-shape-sorting/)
 
 Planned features:
  - More natural teleop setup with gamepad and keyboard.
- - Isaac Lab support.
 
 ## Install
 
-First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html)
+First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html),
+or only [Isaac Lab](https://isaac-sim.github.io/IsaacLab/) for the [Isaac Lab configs](#isaac-lab-without-arena).
 
 Requires Python 3.12 (same as Arena). The repository is `isaaclab-so101`; the package you install is
 `arena-so101`, and you import it as `arena_so101`. It is not on PyPI, so install from git:
@@ -52,14 +53,29 @@ embodiment = AssetRegistry().get_asset_by_name("so101_abs_joint")(enable_cameras
 ```
 
 Arena finds external environments by path (`--external_environment_class_path module:Class`), and the
-environment registers the SO-101 inside its `build()`. [`examples/`](examples/) has a minimal one, as a uv
-project that installs Isaac Sim, Isaac Lab and Arena with `uv sync` and teleoperates the arm in Arena's lift
+environment registers the SO-101 inside its `build()`. [`examples/arena/`](examples/arena/) has a minimal one, as a
+uv project that installs Isaac Sim, Isaac Lab and Arena with `uv sync` and teleoperates the arm in Arena's lift
 task. [arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/blob/25ea6bfea43a5134570e924fb3cdacb663f59472/arena_envs/src/shape_sorting/shape_sorting_env.py#L131)
 is a full one.
 
 See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
 
 > TODO: Document the camera configuration.
+
+## Isaac Lab (without Arena)
+
+`arena_so101.assets` imports only Isaac Lab. Like `isaaclab_assets`, import it after the simulation app starts:
+
+```python
+from arena_so101.assets import SO101_CFG  # also SO101_HIGH_PD_CFG (for IK), SO101_WRIST_CAMERA_CFG
+
+robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+```
+
+The arm faces +X: `init_state` yaws its base 90°, so commands sampled in the base frame reach forward along -Y.
+[`examples/isaaclab/`](examples/isaaclab/) sweeps the joints with the scene API and trains the arm in Isaac Lab's
+reach task with Isaac Lab's own `isaaclab train`. Tested with Isaac Lab 3.0.0rc1 on PhysX. Newton can't load the
+USD yet: it carries its own world joint, and Newton won't merge it with the one `fix_root_link` adds.
 
 ## Embodiments
 
