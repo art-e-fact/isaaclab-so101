@@ -61,6 +61,9 @@ See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Aren
 | `so101_rel_joint` | Relative joint positions (for policies; no teleop device pairing) |
 | `so101_ik` | Relative SE(3) differential IK + binary Jaw (keyboard / gamepad / spacemouse) |
 
+Every episode reset returns the arm to `init_state.joint_pos`: the home pose, or whatever you set with
+`set_joint_initial_pos`. Pass `reset_joint_noise=<rad>` to the constructor to add uniform noise to each joint.
+
 USD joints: `Rotation`, `Pitch`, `Elbow`, `Wrist_Pitch`, `Wrist_Roll`, `Jaw`.
 The robot USD comes from the [Sim-to-Real-SO-101-Workshop](https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop).
 

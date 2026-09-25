@@ -22,7 +22,7 @@ from isaaclab.envs.mdp.actions.actions_cfg import (
     JointPositionActionCfg,
     RelativeJointPositionActionCfg,
 )
-from isaaclab.managers import ActionTermCfg
+from isaaclab.managers import ActionTermCfg, EventTermCfg
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import SceneEntityCfg
@@ -202,6 +202,21 @@ class SO101ObservationsCfg:
 
 
 @configclass
+class SO101EventCfg:
+    # Isaac Lab's scene reset leaves joint state alone, so without this the arm starts each
+    # episode where the last one ended. Resets to init_state.joint_pos, clamped to the soft limits.
+    reset_robot_joints: EventTermCfg = EventTermCfg(
+        func=mdp_isaac_lab.reset_joints_by_offset,
+        mode="reset",
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "position_range": (0.0, 0.0),  # set from reset_joint_noise
+            "velocity_range": (0.0, 0.0),
+        },
+    )
+
+
+@configclass
 class SO101CameraCfg(ArenaCameraCfg):
     # Workshop ego cam: spawn at gripper mount, offset into the real lens frame.
     camera_ego: CameraCfg = CameraCfg(
@@ -249,7 +264,11 @@ class SO101CameraCfg(ArenaCameraCfg):
 
 
 class SO101EmbodimentBase(EmbodimentBase):
-    """Shared SO-101 follower setup (workshop USD)."""
+    """Shared SO-101 follower setup (workshop USD).
+
+    Every episode reset returns the arm to ``init_state.joint_pos`` (the home pose unless changed
+    with ``set_joint_initial_pos``), plus uniform noise of ``±reset_joint_noise`` rad on each joint.
+    """
 
     default_arm_mode = ArmMode.SINGLE_ARM
 
@@ -259,9 +278,12 @@ class SO101EmbodimentBase(EmbodimentBase):
         initial_pose: Pose | None = None,
         concatenate_observation_terms: bool = False,
         arm_mode: ArmMode | None = None,
+        reset_joint_noise: float = 0.0,
     ):
         super().__init__(enable_cameras, initial_pose, concatenate_observation_terms, arm_mode)
         self.scene_config = SO101SceneCfg()
+        self.event_config = SO101EventCfg()
+        self.event_config.reset_robot_joints.params["position_range"] = (-reset_joint_noise, reset_joint_noise)
         self.camera_config = SO101CameraCfg()
         # Isaac Lab 4.6+: CameraCfg already includes tiled rendering; avoid
         # Arena's conversion back to deprecated TiledCameraCfg.

@@ -43,6 +43,10 @@ def _identity(cls):
     return cls
 
 
+def _reset_joints_by_offset(env, env_ids, position_range, velocity_range, asset_cfg=None):
+    """Plain function, so config deep copies keep it (as they keep Isaac Lab's)."""
+
+
 @pytest.fixture
 def isaac(monkeypatch):
     """Import the Isaac-dependent arena_so101 modules against stubbed Isaac Sim / Lab / Arena.
@@ -83,6 +87,7 @@ def isaac(monkeypatch):
     # Attributes the tests rely on. Anything else these modules import is a MagicMock.
     real_attrs = {
         "isaaclab.devices.device_base": {"DeviceBase": DeviceBase, "DeviceCfg": DeviceCfg},
+        "isaaclab.envs.mdp": {"reset_joints_by_offset": _reset_joints_by_offset},
         "isaaclab.managers": {
             "EventTermCfg": SimpleNamespace,
             "ObservationGroupCfg": ObservationGroupCfg,
