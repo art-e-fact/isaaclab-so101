@@ -272,7 +272,8 @@ class SO101EmbodimentBase(EmbodimentBase):
         self.action_config = None
 
     def get_ee_frame_name(self, arm_mode: ArmMode) -> str:
-        return "gripper"
+        # Scene entity name: Arena tasks look it up with SceneEntityCfg / env.scene[...].
+        return "ee_frame"
 
     def get_command_body_name(self) -> str:
         return "gripper"
