@@ -125,6 +125,19 @@ Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.
 `num_read_retries` and `max_consecutive_read_failures`. A failed bus read holds the last pose
 instead of ending the session; it raises after `max_consecutive_read_failures` (default 10) in a row.
 
+## Development
+
+The tests run without Isaac Sim: Isaac-dependent modules are imported against stubs (the `isaac`
+fixture in `tests/conftest.py`), with real `torch` and `numpy`.
+
+```bash
+uv venv --python 3.12
+uv pip install --torch-backend cpu -e ".[dev]"  # ".[dev,lerobot,leader]" also runs the recorder test
+.venv/bin/pytest && .venv/bin/ruff check
+```
+
+CI runs both variants on every pull request. Nothing in CI starts Isaac Sim.
+
 ## Acknowledgments
 
 We used the SO-101 USD model from the [Sim-to-Real-SO-101-Workshop](https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/index.html).
