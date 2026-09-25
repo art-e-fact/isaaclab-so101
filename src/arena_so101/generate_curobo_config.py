@@ -453,8 +453,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--yaml-name",
         type=str,
-        default="so101.yml",
-        help="Output robot YAML filename (default: so101.yml)",
+        default=CUROBO_ROBOT_YML.name,
+        help=f"Output robot YAML filename (default: {CUROBO_ROBOT_YML.name})",
     )
     parser.add_argument(
         "--skip-usd-convert",

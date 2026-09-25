@@ -55,6 +55,6 @@ _DATA_DIR = Path(__file__).resolve().parent / "embodiments" / "data"
 # Robot USD shipped with the package.
 USD_PATH = _DATA_DIR / "SO-ARM101-USD.usd"
 
-# cuRobo robot config written by ``python -m arena_so101.generate_curobo_config``
-# (not shipped yet; exists only after running the generator).
+# cuRobo robot config written by ``python -m arena_so101.generate_curobo_config``.
+# Not shipped: this file exists only after running the generator.
 CUROBO_ROBOT_YML = _DATA_DIR / "curobo" / "so101.yml"

@@ -10,6 +10,7 @@ targets for ``so101_abs_joint`` (not SE3).
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 
 from isaaclab.devices import Se3GamepadCfg
@@ -18,9 +19,20 @@ from isaaclab.devices.device_base import DeviceCfg
 from isaaclab_arena.assets.device_library import TeleopDeviceBase
 from isaaclab_arena.assets.register import register_device
 
-from arena_so101.constants import SIM_JOINT_NAMES
+from arena_so101.constants import HOME_JOINT_POS, SIM_JOINT_NAMES
 from arena_so101.joint_gamepad_device import SO101JointGamepadCfg
 from arena_so101.leader_device import SO101LeaderDeviceCfg
+
+
+def _resolve_joint_pos(joint_pos: dict[str, float]) -> tuple[float, ...]:
+    """Per-joint values from an ``init_state.joint_pos`` dict, in ``SIM_JOINT_NAMES`` order.
+
+    Keys may be exact names or regexes (Isaac Lab full-matches them); unmatched joints use the home pose.
+    """
+    return tuple(
+        float(next((v for key, v in joint_pos.items() if re.fullmatch(key, name)), HOME_JOINT_POS[name]))
+        for name in SIM_JOINT_NAMES
+    )
 
 
 @register_device
@@ -52,10 +64,9 @@ class GamepadCfg(TeleopDeviceBase):
         emb_name = getattr(embodiment, "name", None)
         if emb_name == "so101_abs_joint":
             # Reset to the embodiment's current init pose (tracks set_joint_initial_pos).
-            joint_pos = embodiment.scene_config.robot.init_state.joint_pos
             return SO101JointGamepadCfg(
                 delta_scale=self.delta_scale,
-                default_joint_pos=tuple(float(joint_pos[name]) for name in SIM_JOINT_NAMES),
+                default_joint_pos=_resolve_joint_pos(embodiment.scene_config.robot.init_state.joint_pos),
                 sim_device=self.sim_device or "cpu",
             )
         if emb_name == "so101_ik":

@@ -37,6 +37,8 @@ arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_lead
 
 Joint names, limits, the home pose, Jaw open/close targets and asset paths are exported as
 plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, USD_PATH`.
+`HOME_JOINT_POS` is read-only; pass `dict(HOME_JOINT_POS)` to configs. `CUROBO_ROBOT_YML` exists only
+after running the cuRobo generator (see below).
 
 Then use like any Arena embodiment:
 
