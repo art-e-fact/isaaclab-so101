@@ -15,13 +15,13 @@ def test_joint_gamepad_resets_to_embodiment_init_pose(isaac):
     joint_pos = dict(HOME_JOINT_POS)
     joint_pos["Jaw"] = 0.5  # what EmbodimentBase.set_joint_initial_pos does
 
-    cfg = isaac.devices.GamepadCfg().get_device_cfg(embodiment=_embodiment(joint_pos))
+    cfg = isaac.devices.SO101GamepadCfg().get_device_cfg(embodiment=_embodiment(joint_pos))
 
     assert cfg.default_joint_pos == tuple(joint_pos[name] for name in SIM_JOINT_NAMES)
 
 
 def test_joint_gamepad_resolves_regex_keys_like_isaac_lab(isaac):
-    cfg = isaac.devices.GamepadCfg().get_device_cfg(embodiment=_embodiment({"Wrist_.*": 0.25, "Jaw": 0.5}))
+    cfg = isaac.devices.SO101GamepadCfg().get_device_cfg(embodiment=_embodiment({"Wrist_.*": 0.25, "Jaw": 0.5}))
 
     expected = dict(HOME_JOINT_POS, Wrist_Pitch=0.25, Wrist_Roll=0.25, Jaw=0.5)
     assert cfg.default_joint_pos == tuple(expected[name] for name in SIM_JOINT_NAMES)
