@@ -16,12 +16,15 @@ Planned features:
 
 First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html)
 
-Requires Python 3.12 (same as Arena).
+Requires Python 3.12 (same as Arena). The repository is `isaaclab-so101`; the package you install is
+`arena-so101`, and you import it as `arena_so101`. It is not on PyPI, so install from git:
 
 ```bash
 uv add "arena-so101 @ git+https://github.com/art-e-fact/isaaclab-so101.git"
 # optional extras: `lerobot` (LeRobot dataset recorder), `leader` (physical leader arm teleop)
 uv add "arena-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
+# or with pip, e.g. inside the Isaac Sim Python
+python -m pip install "arena-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
 ```
 
 The base package has no Python dependencies; Isaac Sim, Isaac Lab and Arena come from your
@@ -43,7 +46,9 @@ after running the cuRobo generator (see below).
 Then use like any Arena embodiment:
 
 ```python
-embodiment = asset_registry.get_asset_by_name("so101_abs_joint")(enable_cameras=True)
+from isaaclab_arena.assets.registries import AssetRegistry
+
+embodiment = AssetRegistry().get_asset_by_name("so101_abs_joint")(enable_cameras=True)
 ```
 
 See [example usage in an IsaacLab-Arena environment](https://github.com/art-e-fact/arena-shape-sorting/blob/25ea6bfea43a5134570e924fb3cdacb663f59472/arena_envs/src/shape_sorting/shape_sorting_env.py#L131).
@@ -73,8 +78,8 @@ The robot USD comes from the [Sim-to-Real-SO-101-Workshop](https://github.com/is
 ## cuRobo planning assets
 
 Generate a URDF (from the workshop USD) plus a cuRobo robot YAML (collision spheres,
-self-collision ignore matrix, locked Jaw, home pose) under
-`embodiments/data/curobo/`:
+self-collision ignore matrix, locked Jaw, home pose) under the package's
+`embodiments/data/curobo/` (`src/arena_so101/...` in a checkout; `--output-dir` writes elsewhere):
 
 ```bash
 # Inside the Isaac Sim / Arena env (needs CUDA + nvidia-curobo)
@@ -91,14 +96,15 @@ Outputs:
 | `embodiments/data/curobo/meshes/` | Link meshes referenced by the URDF |
 | `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg` for `MotionPlanner` |
 
-Rebuild spheres from an existing URDF (no Isaac Sim):
+Rebuild the spheres from the URDF generated above, without Isaac Sim (still needs CUDA +
+nvidia-curobo, and `usd-core` to read the authored spheres):
 
 ```bash
-python -m arena_so101.generate_curobo_config \
-  --skip-usd-convert \
-  --urdf arena_so101/src/arena_so101/embodiments/data/curobo/urdf/SO-ARM101-USD.urdf \
-  --asset-path arena_so101/src/arena_so101/embodiments/data/curobo/meshes
+python -m arena_so101.generate_curobo_config --skip-usd-convert
 ```
+
+It reads `urdf/` and `meshes/` from the output directory. For a URDF elsewhere, pass `--urdf <file>`
+and `--asset-path <mesh dir>`.
 
 Add `--visualize` to inspect fitted spheres in Viser.
 
