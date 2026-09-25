@@ -122,8 +122,8 @@ Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.
 
 `SO101LeaderCfg` options: `port`, `leader_id`, `leader_recalibrate`, `calibration_dir`
 (default `~/.cache/huggingface/lerobot/calibration/teleoperators/so_leader/`, file `<leader_id>.json`)
-and `num_read_retries`. A failed bus read holds the last pose instead of ending the session
-(it raises after `max_consecutive_read_failures`, default 10, on `SO101LeaderDeviceCfg`).
+`num_read_retries` and `max_consecutive_read_failures`. A failed bus read holds the last pose
+instead of ending the session; it raises after `max_consecutive_read_failures` (default 10) in a row.
 
 ## Acknowledgments
 

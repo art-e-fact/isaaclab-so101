@@ -95,6 +95,7 @@ class SO101LeaderCfg(TeleopDeviceBase):
         leader_recalibrate: bool = False,
         calibration_dir: str | None = None,
         num_read_retries: int = 2,
+        max_consecutive_read_failures: int = 10,
     ):
         super().__init__(sim_device=sim_device)
         self.port = port
@@ -102,6 +103,7 @@ class SO101LeaderCfg(TeleopDeviceBase):
         self.leader_recalibrate = leader_recalibrate
         self.calibration_dir = calibration_dir
         self.num_read_retries = num_read_retries
+        self.max_consecutive_read_failures = max_consecutive_read_failures
 
     def get_device_cfg(
         self, pipeline_builder: Callable | None = None, embodiment: object | None = None
@@ -112,5 +114,6 @@ class SO101LeaderCfg(TeleopDeviceBase):
             leader_recalibrate=self.leader_recalibrate,
             calibration_dir=self.calibration_dir,
             num_read_retries=self.num_read_retries,
+            max_consecutive_read_failures=self.max_consecutive_read_failures,
             sim_device=self.sim_device or "cpu",
         )

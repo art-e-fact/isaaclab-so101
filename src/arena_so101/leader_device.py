@@ -94,15 +94,16 @@ class SO101LeaderDevice(DeviceBase):
             from lerobot.teleoperators.so_leader import SO101Leader, SO101LeaderConfig
         except ImportError as exc:
             raise ImportError(
-                "SO-101 leader needs lerobot>=0.6.1. Install the extra: "
-                "pip install 'arena-so101[leader]'"
+                "SO-101 leader needs lerobot[feetech]>=0.6.1,<0.7 (the arena-so101 `leader` extra). "
+                "Install it into the Isaac Sim Python: python -m pip install 'lerobot[feetech]>=0.6.1,<0.7'"
             ) from exc
 
         leader = SO101Leader(
             SO101LeaderConfig(
                 port=cfg.port,
                 id=cfg.leader_id,
-                calibration_dir=Path(cfg.calibration_dir) if cfg.calibration_dir else None,
+                # LeRobot mkdirs this as-is; expand "~" so it doesn't create a literal ./~ directory.
+                calibration_dir=Path(cfg.calibration_dir).expanduser() if cfg.calibration_dir else None,
                 use_degrees=False,
                 num_read_retries=cfg.num_read_retries,
             )
