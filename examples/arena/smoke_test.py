@@ -3,7 +3,7 @@
 For each embodiment, builds so101_table (Arena's lift task, whose reward reads the ee_frame),
 steps it, moves the arm away, resets, and checks the arm is back in its initial pose.
 
-    uv run python smoke_test.py
+    source ./setup.sh && python smoke_test.py
 
 Exits non-zero on the first failure.
 """

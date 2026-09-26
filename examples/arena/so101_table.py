@@ -1,8 +1,9 @@
 """SO-101 on a table with a cube to lift: a minimal Arena environment for the arena_so101 embodiments.
 
-Arena has no plugin discovery, so its CLIs load this class by path:
+Arena has no plugin discovery, so Isaac Lab's scripts load this class by path, through Arena's callback:
 
-    --external_environment_class_path so101_table:SO101TableEnvironment so101_table --embodiment so101_ik
+    --external_callback isaaclab_arena.environments.isaaclab_interop.environment_registration_callback
+    --task so101_table --external_environment_class_path so101_table:SO101TableEnvironment --embodiment so101_ik
 
 The robot sits at the env origin facing +X; the cube is 25 cm in front of it.
 """

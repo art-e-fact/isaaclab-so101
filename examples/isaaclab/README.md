@@ -11,7 +11,7 @@ editable). Arena is not installed.
 
 Requirements: Linux x86_64, a GPU and driver that
 [Isaac Sim 6.1 supports](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/requirements.html),
-[uv](https://docs.astral.sh/uv/getting-started/installation/), and about 20 GB of disk.
+[uv](https://docs.astral.sh/uv/getting-started/installation/), and about 30 GB of disk.
 
 ```bash
 cd examples/isaaclab
@@ -49,6 +49,6 @@ backend, can't load the SO-101 USD yet.
 
 ## Isaac Lab version
 
-`pyproject.toml` pins Isaac Lab 3.0.0rc1, the newest wheel on pypi.nvidia.com. The Arena example stays on
-3.0.0b2 because its Arena commit needs it. The `[tool.uv]` constraints and overrides cover what the Isaac Lab
-wheel's own dependencies leave out.
+`pyproject.toml` pins Isaac Lab 3.0.0rc1, the newest wheel on pypi.nvidia.com. The Arena example installs
+Isaac Lab from Arena's submodule instead (see `../arena/`). The `[tool.uv]` constraints and overrides cover what
+the Isaac Lab wheel's own dependencies leave out.

@@ -6,3 +6,5 @@ __pycache__/
 logs/
 # Local notes (issues.local/, etc.)
 *.local/
+# examples/arena/setup.sh clones Arena here
+examples/arena/IsaacLab-Arena/
