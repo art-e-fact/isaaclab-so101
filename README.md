@@ -61,7 +61,18 @@ is a full one.
 
 See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
 
-> TODO: Document the camera configuration.
+### Cameras
+
+`enable_cameras=True` (the example's `--enable_cameras`) adds two 640×480 RGB cameras, observed in the `camera_obs`
+group as `camera_ego_rgb` and `external_camera_rgb`:
+
+- `camera_ego`: the workshop's wrist camera on the gripper (`SO101_WRIST_CAMERA_CFG`).
+- `external_camera`: a third-person view attached to the base link, so it moves with the robot. Aim it with
+  `embodiment.set_external_camera_view(eye, target)`, both relative to the robot base with the arm facing +X.
+  The default is eye `(0.55, -0.6, 0.45)`, target `(0.12, 0, 0.1)`.
+
+Both carry Arena's camera extrinsics and intrinsics variations. `arena_so101.cameras.look_at_offset(eye, target)`
+builds the `CameraCfg.OffsetCfg` for a camera of your own (points in the camera's parent frame).
 
 ## Isaac Lab (without Arena)
 

@@ -1,13 +1,15 @@
 """SO-101 follower embodiments for Isaac Lab Arena, built on the Isaac Lab configs in ``arena_so101.assets``.
 
-Cameras are Python ``CameraCfg`` sensors: wrist RGB on ``Robot/gripper/gripper_cam``, plus a fixed
-env-frame ``external_camera`` (over-shoulder / table view). Neither is baked into the USD.
+Cameras are Python ``CameraCfg`` sensors: wrist RGB on ``Robot/gripper/gripper_cam``, plus an
+``external_camera`` on the base link (over-shoulder / table view), so it moves with the robot.
+Neither is baked into the USD.
 """
 
 from __future__ import annotations
 
 import math
 
+import torch
 import isaaclab.envs.mdp as mdp_isaac_lab
 import isaaclab.sim as sim_utils
 from isaaclab.assets.articulation import ArticulationCfg
@@ -24,6 +26,7 @@ from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import CameraCfg, FrameTransformerCfg
 from isaaclab.utils.configclass import configclass
+from isaaclab.utils.math import quat_apply_inverse
 
 from isaaclab_arena.assets.register import register_asset
 from isaaclab_arena.embodiments.common.arm_mode import ArmMode
@@ -32,6 +35,7 @@ from isaaclab_arena.utils.cameras import ArenaCameraCfg
 from isaaclab_arena.utils.pose import Pose, PosePerEnv
 
 from arena_so101.assets import SO101_CFG, SO101_HIGH_PD_CFG, SO101_WRIST_CAMERA_CFG
+from arena_so101.cameras import look_at_offset
 from arena_so101.constants import ARM_JOINT_NAMES, JAW_CLOSE_RAD, JAW_OPEN_RAD, SIM_JOINT_NAMES
 
 # The arm faces +X only because SO101_CFG.init_state yaws its base 90° (see assets.py). Arena writes the
@@ -134,10 +138,11 @@ class SO101EventCfg:
 class SO101CameraCfg(ArenaCameraCfg):
     camera_ego: CameraCfg = SO101_WRIST_CAMERA_CFG
 
-    # Fixed third-person / over-shoulder view (env frame). Pose is a sensible
-    # default; task envs (e.g. shape sorting) may override the offset.
+    # Third-person / over-shoulder view on the base link, so it follows the robot. The offset is in the
+    # base link's frame, where the arm points along -Y; SO101EmbodimentBase.set_external_camera_view takes
+    # the view with the arm facing +X instead (this default is eye (0.55, -0.6, 0.45), target (0.12, 0, 0.1) there).
     external_camera: CameraCfg = CameraCfg(
-        prim_path="{ENV_REGEX_NS}/external_camera",
+        prim_path="{ENV_REGEX_NS}/Robot/base/external_camera",
         update_period=0.0,
         height=480,
         width=640,
@@ -150,12 +155,7 @@ class SO101CameraCfg(ArenaCameraCfg):
             horizontal_aperture=20.955,
             clipping_range=(0.1, 2.0),
         ),
-        # Same look as Isaac Lab Franka ``table_cam``, shifted to the side.
-        offset=CameraCfg.OffsetCfg(
-            pos=(1.0, -0.55, 0.75),
-            rot=(-0.61237, -0.61237, 0.35355, 0.35355),
-            convention="ros",
-        ),
+        offset=look_at_offset(eye=(-0.6, -0.55, 0.45), target=(0.0, -0.12, 0.1)),
     )
 
 
@@ -184,9 +184,10 @@ class SO101EmbodimentBase(EmbodimentBase):
         self.event_config = SO101EventCfg()
         self.event_config.reset_robot_joints.params["position_range"] = (-reset_joint_noise, reset_joint_noise)
         self.camera_config = SO101CameraCfg()
-        # Isaac Lab 4.6+: CameraCfg already includes tiled rendering; avoid
-        # Arena's conversion back to deprecated TiledCameraCfg.
+        # TiledCameraCfg is deprecated (isaaclab 4.6, Isaac Lab 3.0): CameraCfg renders tiled itself. Keep
+        # Arena from converting the rig back to it.
         self.camera_config.set_use_tiled_camera(False)
+        self.add_camera_variations(self.camera_config)
         self.observation_config = SO101ObservationsCfg()
         if concatenate_observation_terms:
             self.observation_config.policy.concatenate_terms = True
@@ -202,6 +203,13 @@ class SO101EmbodimentBase(EmbodimentBase):
     def get_reach_body_name(self) -> str:
         """Rigid body used for reach rewards (workshop USD link name)."""
         return "gripper"
+
+    def set_external_camera_view(self, eye: tuple[float, float, float], target: tuple[float, float, float]) -> None:
+        """Aim ``external_camera`` from ``eye`` at ``target``, both relative to the robot base with the arm
+        facing +X (the placement frame). The camera is attached to the base link and moves with the robot."""
+        yaw = torch.tensor(_PLACEMENT_TO_BASE.rotation_xyzw)
+        eye, target = (tuple(quat_apply_inverse(yaw, torch.tensor(p, dtype=torch.float32)).tolist()) for p in (eye, target))
+        self.camera_config.external_camera.offset = look_at_offset(eye, target)
 
     # Placement frame (see _PLACEMENT_TO_BASE): the base yaw is composed in at the two places Arena
     # writes a pose to the sim, and taken out of what it reads back from the scene config.

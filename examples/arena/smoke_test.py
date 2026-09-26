@@ -2,7 +2,8 @@
 
 For each embodiment, builds so101_table (Arena's lift task, whose reward reads the ee_frame),
 steps it, moves the arm away, resets, and checks the arm is back in its initial pose. Then checks
-that placing the arm, explicitly and with ``On(table)``, keeps it facing +X.
+that placing the arm, explicitly and with ``On(table)``, keeps it facing +X, and that the cameras
+render and the external camera follows the base.
 
     source ./setup.sh && python smoke_test.py
 
@@ -105,17 +106,57 @@ def check_placement(args) -> None:
             env.close()
 
 
+def check_cameras(args) -> None:
+    """Both cameras render, and the external camera rides on the base, aimed by set_external_camera_view."""
+    import torch
+    from isaaclab.utils.math import quat_apply
+    from isaaclab_arena.utils.pose import Pose
+
+    from so101_table import SO101TableEnvironmentCfg
+
+    eye, target = (0.5, -0.5, 0.4), (0.15, 0.0, 0.05)  # relative to the base, arm facing +X
+
+    def prepare(arena_env) -> None:
+        arena_env.embodiment.set_initial_pose(Pose(position_xyz=(0.0, 0.1, 0.0)))  # the camera has to follow
+        arena_env.embodiment.set_external_camera_view(eye, target)
+
+    env, _ = build(args, SO101TableEnvironmentCfg(embodiment="so101_rel_joint", enable_cameras=True), prepare)
+    try:
+        env.reset()
+        actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)  # relative: hold still
+        for _ in range(3):
+            obs, *_ = env.step(actions)
+        for key in ("camera_ego_rgb", "external_camera_rgb"):
+            image = obs["camera_obs"][key]
+            assert tuple(image.shape) == (1, 480, 640, 3), f"{key}: shape {tuple(image.shape)}"
+            assert image.float().std() > 1.0, f"{key}: blank image"
+        robot, camera = env.unwrapped.scene["robot"], env.unwrapped.scene["external_camera"]
+        base = robot.data.root_pos_w.torch[0]
+        eye_w, target_w = base + base.new_tensor(eye), base + base.new_tensor(target)  # the base faces +X
+        camera_pos = camera.data.pos_w.torch[0]
+        assert (camera_pos - eye_w).norm() < TOLERANCE_M, f"external camera at {camera_pos.tolist()}, not {eye_w.tolist()}"
+        forward = quat_apply(camera.data.quat_w_world.torch[0], base.new_tensor((1.0, 0.0, 0.0)))  # world: +X forward
+        aim = target_w - eye_w
+        cosine = torch.dot(forward, aim / aim.norm()).item()
+        assert cosine > 0.9999, f"external camera looks along {forward.tolist()}, not at the target (cos {cosine:.4f})"
+        offset = [round(v, 3) for v in (camera_pos - base).tolist()]
+        print(f"[smoke_test] cameras: OK (both render; external camera {offset} from the base, aimed at the target)")
+    finally:
+        env.close()
+
+
 def main() -> None:
     from isaaclab_arena.cli.isaaclab_arena_cli import get_isaaclab_arena_cli_parser
     from isaaclab_arena.utils.isaaclab_utils.simulation_app import SimulationAppContext, teardown_simulation_app
 
-    args = get_isaaclab_arena_cli_parser().parse_args([])  # no --viz: headless
+    args = get_isaaclab_arena_cli_parser().parse_args(["--enable_cameras"])  # no --viz: headless
     with SimulationAppContext(args):
         for embodiment_name in EMBODIMENTS:
             check(embodiment_name, args)
             teardown_simulation_app(make_new_stage=True)
-        check_placement(args)
-        teardown_simulation_app(make_new_stage=True)
+        for check_fn in (check_placement, check_cameras):
+            check_fn(args)
+            teardown_simulation_app(make_new_stage=True)
         print("[smoke_test] all checks OK")
 
 

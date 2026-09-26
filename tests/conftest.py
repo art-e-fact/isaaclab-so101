@@ -14,6 +14,7 @@ import pytest
 # ``embodiments`` is one because its __init__ imports ``embodiments.so101``.
 _ISAAC_DEPENDENT = (
     "assets",
+    "cameras",
     "joint_gamepad_device",
     "leader_device",
     "devices",
@@ -83,6 +84,9 @@ def isaac(monkeypatch):
 
         def get_events_cfg(self):
             return self.event_config
+
+        def add_camera_variations(self, camera_rig):
+            pass
 
     class ArenaCameraCfg:
         def set_use_tiled_camera(self, use_tiled_camera):
