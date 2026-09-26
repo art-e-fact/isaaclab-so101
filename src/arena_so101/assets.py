@@ -7,6 +7,8 @@ Like ``isaaclab_assets``, import this after the simulation app starts::
     robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
 The arm faces +X: ``init_state`` yaws the USD base 90° about Z, so world +X is the base frame's -Y.
+The workshop USD authors that yaw on its default prim; Isaac Lab's spawner replaces the prim's transform
+with ``init_state``, so ``init_state.rot`` has to repeat it, or the arm faces -Y.
 USD and joint names follow the NVIDIA Sim-to-Real SO-101 workshop (``Rotation`` … ``Jaw``).
 """
 

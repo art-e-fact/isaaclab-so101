@@ -89,6 +89,11 @@ USD yet: it carries its own world joint, and Newton won't merge it with the one 
 Every episode reset returns the arm to `init_state.joint_pos`: the home pose, or whatever you set with
 `set_joint_initial_pos`. Pass `reset_joint_noise=<rad>` to the constructor to add uniform noise to each joint.
 
+The arm faces +X. `set_initial_pose(Pose(position_xyz=...))` moves it and keeps it facing +X, and so do
+placement relations (`embodiment.add_relation(On(table))`); a `rotation_xyzw` turns it from there. (The USD's
+base link is yawed 90° to face +X; the embodiment composes that yaw into every pose Arena writes, so you never
+pass it yourself.)
+
 USD joints: `Rotation`, `Pitch`, `Elbow`, `Wrist_Pitch`, `Wrist_Roll`, `Jaw`.
 The robot USD comes from the [Sim-to-Real-SO-101-Workshop](https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop).
 
