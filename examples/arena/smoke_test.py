@@ -3,8 +3,9 @@
 For each embodiment, builds so101_table (Arena's lift task, whose reward reads the ee_frame),
 steps it, moves the arm away, resets, and checks the arm is back in its initial pose. Then checks
 that placing the arm, explicitly and with ``On(table)``, keeps it facing +X, that the cameras
-render and the external camera follows the base, and the Franka-parity extras (EE observations,
-the Arena gripper, ``set_joint_initial_pos``).
+render and the external camera follows the base, the Franka-parity extras (EE observations,
+the Arena gripper, ``set_joint_initial_pos``), and that the LeRobot recorder takes the env's own frames and
+``joint_targets`` for every embodiment.
 
     source ./setup.sh && python smoke_test.py
 
@@ -14,6 +15,7 @@ Exits non-zero on the first failure.
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 EMBODIMENTS = ("so101_abs_joint", "so101_rel_joint", "so101_ik")
 STEPS = 30
@@ -35,10 +37,12 @@ def build(args, cfg=None, prepare=None):
 
 
 def check(embodiment_name: str, args) -> None:
+    import numpy as np
     import torch
     from isaaclab.utils.math import quat_apply
 
-    from arena_so101 import TCP_OFFSET
+    from arena_so101 import JAW_OPEN_RAD, TCP_OFFSET
+    from arena_so101.lerobot import joint_targets
     from so101_table import SO101TableEnvironmentCfg
 
     env, _ = build(args, SO101TableEnvironmentCfg(embodiment=embodiment_name))
@@ -58,6 +62,14 @@ def check(embodiment_name: str, args) -> None:
         tcp = env.unwrapped.scene["ee_frame"].data.target_pos_w.torch[0, 0]
         expected = body_pos + quat_apply(body_quat, body_pos.new_tensor(TCP_OFFSET))
         assert (tcp - expected).norm() < TOLERANCE_M, f"{embodiment_name}: ee_frame at {tcp.tolist()}, TCP {expected.tolist()}"
+
+        # joint_targets: the absolute targets the sim received, whatever the action space (the recorder's action).
+        targets = joint_targets(env)[0]
+        joint_pos = robot.data.joint_pos.torch[0].cpu().numpy()
+        expected = initial[0].cpu().numpy() if embodiment_name == "so101_abs_joint" else joint_pos  # zero deltas hold
+        if embodiment_name == "so101_ik":
+            expected = np.append(joint_pos[:5], JAW_OPEN_RAD)  # a 0 jaw command opens
+        assert np.allclose(targets, expected, atol=1e-2), f"{embodiment_name}: joint_targets {targets}, expected {expected}"
 
         # Move the arm away, then reset: the embodiment's reset event must bring it back.
         robot.write_joint_state_to_sim(initial + 0.3, torch.zeros_like(initial))
@@ -193,6 +205,56 @@ def check_parity(args) -> None:
         env.close()
 
 
+def check_recorder(args) -> None:
+    """The recorder takes the env's own frames for any camera set, with joint_targets as the action."""
+    import contextlib
+    import sys
+    import tempfile
+    import types
+
+    import numpy as np
+    import torch
+
+    from arena_so101 import SIM_JOINT_NAMES
+    from arena_so101.lerobot import SO101LeRobotRecorder, camera_shapes, joint_targets
+    from so101_table import SO101TableEnvironmentCfg
+
+    # lerobot is not in Arena's venv: stand in for LeRobotDataset and keep the frames the recorder adds.
+    frames: list[dict] = []
+    dataset = types.SimpleNamespace(
+        add_frame=frames.append, has_pending_frames=lambda: bool(frames), save_episode=frames.clear, num_episodes=0
+    )
+    sys.modules["lerobot.datasets"] = types.SimpleNamespace(
+        LeRobotDataset=types.SimpleNamespace(create=lambda *_, **__: dataset),
+        VideoEncodingManager=lambda _: contextlib.nullcontext(),
+    )
+    env, _ = build(args, SO101TableEnvironmentCfg(embodiment="so101_ik", enable_cameras=True))
+    try:
+        obs, _ = env.reset()
+        robot = env.unwrapped.scene["robot"]
+        assert robot.joint_names == list(SIM_JOINT_NAMES), robot.joint_names  # observation.state is in this order
+        shapes = camera_shapes(env)
+        assert shapes == {"camera_ego_rgb": (480, 640, 3), "external_camera_rgb": (480, 640, 3)}, shapes
+        cameras = {"camera_ego_rgb": "observation.images.wrist"}  # a one-camera set
+        root = Path(tempfile.mkdtemp()) / "dataset"
+        with SO101LeRobotRecorder(root=root, repo_id="smoke/so101", fps=30, cameras=cameras, image_shapes=shapes) as recorder:
+            actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
+            for _ in range(2):
+                snapshot = recorder.snapshot_observation(obs)
+                obs, *_ = env.step(actions)
+                recorder.add_transition(snapshot, joint_targets(env), task="smoke")
+            frame = frames[-1]
+            assert set(frame) == {"observation.state", "action", "observation.images.wrist", "task"}, sorted(frame)
+            image = frame["observation.images.wrist"]
+            assert image.dtype == np.uint8 and image.shape == (480, 640, 3) and image.std() > 1.0, "wrist frame"
+            assert frame["action"].dtype == np.float32 and frame["action"].shape == (6,)
+            assert np.allclose(frame["action"], joint_targets(env)[0]), "action is not the step's joint targets"
+            recorder.save_episode()
+        print(f"[smoke_test] recorder: OK (2 frames, cameras {shapes}, one recorded)")
+    finally:
+        env.close()
+
+
 def main() -> None:
     from isaaclab_arena.cli.isaaclab_arena_cli import get_isaaclab_arena_cli_parser
     from isaaclab_arena.utils.isaaclab_utils.simulation_app import SimulationAppContext, teardown_simulation_app
@@ -202,7 +264,7 @@ def main() -> None:
         for embodiment_name in EMBODIMENTS:
             check(embodiment_name, args)
             teardown_simulation_app(make_new_stage=True)
-        for check_fn in (check_placement, check_cameras, check_parity):
+        for check_fn in (check_placement, check_cameras, check_parity, check_recorder):
             check_fn(args)
             teardown_simulation_app(make_new_stage=True)
         print("[smoke_test] all checks OK")

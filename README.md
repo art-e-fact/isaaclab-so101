@@ -74,6 +74,31 @@ group as `camera_ego_rgb` and `external_camera_rgb`:
 Both carry Arena's camera extrinsics and intrinsics variations. `arena_so101.cameras.look_at_offset(eye, target)`
 builds the `CameraCfg.OffsetCfg` for a camera of your own (points in the camera's parent frame).
 
+### Recording LeRobot datasets
+
+`arena_so101.lerobot` (the `lerobot` extra) writes rollouts straight into a LeRobot v3 dataset. `observation.state`
+is `policy.joint_pos`; `action` is the absolute joint targets the sim received for that step, so all three
+embodiments record the same joint-space action (relative and IK actions end as position targets too); and there is
+one video per camera in `cameras` (sim observation term → dataset key; the default is the two embodiment cameras as
+`observation.images.ego_view` / `exterior_image`). Frames are uint8 or float in [0, 1], as `camera_obs` gives them.
+
+```python
+from arena_so101.lerobot import SO101LeRobotRecorder, camera_shapes, joint_targets
+
+with SO101LeRobotRecorder(
+    root="datasets/lift", repo_id="me/so101_lift", fps=round(1 / env.unwrapped.step_dt),
+    cameras={"camera_ego_rgb": "observation.images.wrist"}, image_shapes=camera_shapes(env),
+) as recorder:
+    obs, _ = env.reset()
+    for _ in range(200):
+        snapshot = recorder.snapshot_observation(obs)  # the env reuses its buffers
+        obs, *_ = env.step(policy(obs))
+        recorder.add_transition(snapshot, joint_targets(env), task="Lift the cube.")
+    recorder.save_episode()  # or discard_episode(); close() drops whatever is pending
+```
+
+`resume=True` appends to an existing dataset (same fps and features), `overwrite=True` replaces it.
+
 ## Isaac Lab (without Arena)
 
 `arena_so101.assets` imports only Isaac Lab. Like `isaaclab_assets`, import it after the simulation app starts:

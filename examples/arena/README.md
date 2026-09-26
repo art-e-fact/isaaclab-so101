@@ -56,6 +56,9 @@ python IsaacLab-Arena/submodules/IsaacLab/scripts/tools/record_demos.py --viz ki
   --dataset_file datasets/so101_lift.hdf5 --num_demos 5
 ```
 
+For a LeRobot dataset instead, see [Recording LeRobot datasets](../../README.md#recording-lerobot-datasets)
+in the main README.
+
 ## Your own environment
 
 Copy `so101_table.py`. The one SO-101-specific step is calling `arena_so101.register()` inside `build()`:
