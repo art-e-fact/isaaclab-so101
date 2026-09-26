@@ -100,6 +100,13 @@ USD yet: it carries its own world joint, and Newton won't merge it with the one 
 Every episode reset returns the arm to `init_state.joint_pos`: the home pose, or whatever you set with
 `set_joint_initial_pos`. Pass `reset_joint_noise=<rad>` to the constructor to add uniform noise to each joint.
 
+Observations (`policy` group): `actions`, `joint_pos`, `joint_vel`, and for Franka parity `eef_pos` / `eef_quat`
+(the TCP in the robot base frame, what `FrankaMimicEnv`-style code reads) and `gripper_pos` (the Jaw angle).
+`initial_joint_pose={"Jaw": 0.5, ...}` in the constructor overrides the home pose for spawning and resets.
+`get_gripper()` returns an Arena `ParallelJawGripper`: `get_jaw_gap_m` from the Jaw angle and the jaw geometry,
+`get_position_w` at the TCP. Other constructor keywords (`collision_mode`, `spawn_cfg_addon`) go to Arena's
+`EmbodimentBase`.
+
 The arm faces +X. `set_initial_pose(Pose(position_xyz=...))` moves it and keeps it facing +X, and so do
 placement relations (`embodiment.add_relation(On(table))`); a `rotation_xyzw` turns it from there. (The USD's
 base link is yawed 90° to face +X; the embodiment composes that yaw into every pose Arena writes, so you never

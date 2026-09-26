@@ -8,6 +8,8 @@ Neither is baked into the USD.
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
+from dataclasses import dataclass
 
 import torch
 import isaaclab.envs.mdp as mdp_isaac_lab
@@ -32,12 +34,21 @@ from isaaclab.utils.math import quat_apply_inverse
 from isaaclab_arena.assets.register import register_asset
 from isaaclab_arena.embodiments.common.arm_mode import ArmMode
 from isaaclab_arena.embodiments.embodiment_base import EmbodimentBase
+from isaaclab_arena.embodiments.gripper import ParallelJawGripper
 from isaaclab_arena.utils.cameras import ArenaCameraCfg
 from isaaclab_arena.utils.pose import Pose, PosePerEnv
 
 from arena_so101.assets import SO101_CFG, SO101_HIGH_PD_CFG, SO101_WRIST_CAMERA_CFG
 from arena_so101.cameras import look_at_offset
-from arena_so101.constants import ARM_JOINT_NAMES, JAW_CLOSE_RAD, JAW_OPEN_RAD, SIM_JOINT_NAMES, TCP_OFFSET
+from arena_so101.constants import (
+    ARM_JOINT_NAMES,
+    FIXED_JAW_TIP_XZ,
+    JAW_CLOSE_RAD,
+    JAW_OPEN_RAD,
+    JAW_TIP_XZ,
+    SIM_JOINT_NAMES,
+    TCP_OFFSET,
+)
 
 # The arm faces +X only because SO101_CFG.init_state yaws its base 90° (see assets.py). Arena writes the
 # Pose it is given straight into init_state and the root-pose reset event, so a plain Pose() would drop
@@ -107,6 +118,16 @@ class SO101IKActionsCfg:
     )
 
 
+def ee_pos_in_base(env, ee_frame_cfg: SceneEntityCfg = SceneEntityCfg("ee_frame")) -> torch.Tensor:
+    """TCP position in the robot base frame: the ee_frame target relative to its source, ``Robot/base``."""
+    return env.scene[ee_frame_cfg.name].data.target_pos_source.torch[:, 0, :]
+
+
+def ee_quat_in_base(env, ee_frame_cfg: SceneEntityCfg = SceneEntityCfg("ee_frame")) -> torch.Tensor:
+    """TCP orientation (x, y, z, w) in the robot base frame."""
+    return env.scene[ee_frame_cfg.name].data.target_quat_source.torch[:, 0, :]
+
+
 @configclass
 class SO101ObservationsCfg:
     @configclass
@@ -114,6 +135,12 @@ class SO101ObservationsCfg:
         actions = ObsTerm(func=mdp_isaac_lab.last_action)
         joint_pos = ObsTerm(func=mdp_isaac_lab.joint_pos, params={"asset_cfg": SceneEntityCfg("robot")})
         joint_vel = ObsTerm(func=mdp_isaac_lab.joint_vel, params={"asset_cfg": SceneEntityCfg("robot")})
+        # Franka parity: mimic envs read eef_pos / eef_quat; the IK action works in the same base frame.
+        eef_pos = ObsTerm(func=ee_pos_in_base)
+        eef_quat = ObsTerm(func=ee_quat_in_base)
+        gripper_pos = ObsTerm(
+            func=mdp_isaac_lab.joint_pos, params={"asset_cfg": SceneEntityCfg("robot", joint_names=["Jaw"])}
+        )
 
         def __post_init__(self):
             self.enable_corruption = False
@@ -162,11 +189,31 @@ class SO101CameraCfg(ArenaCameraCfg):
     )
 
 
+@dataclass(frozen=True, kw_only=True)
+class SO101Gripper(ParallelJawGripper):
+    """The SO-101 jaw for Arena's gripper protocol: gap from the Jaw angle, position from the ee_frame TCP."""
+
+    jaw_joint_name: str = "Jaw"
+    frame_transformer_name: str = "ee_frame"
+    target_frame_name: str = "end_effector"
+
+    def get_jaw_gap_m(self, world) -> torch.Tensor:
+        """Distance between the jaw tips: the moving tip swings about the pivot in the gripper's XZ plane."""
+        theta = world.get_joint_position("robot", self.jaw_joint_name)
+        cos, sin = torch.cos(theta), torch.sin(theta)
+        (rx, rz), (fx, fz) = JAW_TIP_XZ, FIXED_JAW_TIP_XZ
+        return torch.hypot(fx - (rx * cos - rz * sin), fz - (rx * sin + rz * cos))
+
+    def get_position_w(self, world) -> torch.Tensor:
+        return world.get_frame_position_w(self.frame_transformer_name, self.target_frame_name)
+
+
 class SO101EmbodimentBase(EmbodimentBase):
     """Shared SO-101 follower setup (workshop USD).
 
-    Every episode reset returns the arm to ``init_state.joint_pos`` (the home pose unless changed
-    with ``set_joint_initial_pos``), plus uniform noise of ``±reset_joint_noise`` rad on each joint.
+    Every episode reset returns the arm to ``init_state.joint_pos`` (the home pose, or ``initial_joint_pose``,
+    joint name → rad), plus uniform noise of ``±reset_joint_noise`` rad on each joint. Other keyword arguments
+    (``collision_mode``, ``spawn_cfg_addon``) go to Arena's ``EmbodimentBase``.
 
     Poses, bounding boxes and meshes are in the placement frame, where the arm faces +X: ``Pose()``
     keeps it facing that way, and relations such as ``On(table)`` place it facing that way.
@@ -181,9 +228,14 @@ class SO101EmbodimentBase(EmbodimentBase):
         concatenate_observation_terms: bool = False,
         arm_mode: ArmMode | None = None,
         reset_joint_noise: float = 0.0,
+        initial_joint_pose: Mapping[str, float] | None = None,
+        **kwargs,
     ):
-        super().__init__(enable_cameras, initial_pose, concatenate_observation_terms, arm_mode)
+        super().__init__(enable_cameras, initial_pose, concatenate_observation_terms, arm_mode, **kwargs)
+        self.gripper = SO101Gripper()
         self.scene_config = SO101SceneCfg()
+        if initial_joint_pose:
+            self.set_joint_initial_pos(initial_joint_pose)
         self.event_config = SO101EventCfg()
         self.event_config.reset_robot_joints.params["position_range"] = (-reset_joint_noise, reset_joint_noise)
         self.camera_config = SO101CameraCfg()

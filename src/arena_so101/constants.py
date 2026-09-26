@@ -42,6 +42,11 @@ JAW_CLOSE_RAD, JAW_OPEN_RAD = JOINT_LIMITS_RAD[-1]
 # Jaw = -10° (-0.004, 0.000, -0.101). The IK action, ``ee_frame`` and the cuRobo tool frame all target it.
 TCP_OFFSET = (-0.007, 0.0, -0.102)
 
+# Jaw geometry for the gap between the tips: the moving tip at Jaw = 0 and the fixed tip, relative to the Jaw
+# pivot in the ``gripper`` frame's XZ plane (the jaw swings about the pivot's -Y axis). Measured from the USD.
+JAW_TIP_XZ = (-0.0100, -0.0810)
+FIXED_JAW_TIP_XZ = (-0.0304, -0.0799)
+
 # Default / home joint pose in radians (ArticulationCfg init_state, gamepad reset, cuRobo retract).
 # Read-only; copy with dict(HOME_JOINT_POS) before modifying.
 HOME_JOINT_POS = MappingProxyType(

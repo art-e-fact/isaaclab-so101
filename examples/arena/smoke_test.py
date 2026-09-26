@@ -2,8 +2,9 @@
 
 For each embodiment, builds so101_table (Arena's lift task, whose reward reads the ee_frame),
 steps it, moves the arm away, resets, and checks the arm is back in its initial pose. Then checks
-that placing the arm, explicitly and with ``On(table)``, keeps it facing +X, and that the cameras
-render and the external camera follows the base.
+that placing the arm, explicitly and with ``On(table)``, keeps it facing +X, that the cameras
+render and the external camera follows the base, and the Franka-parity extras (EE observations,
+the Arena gripper, ``set_joint_initial_pos``).
 
     source ./setup.sh && python smoke_test.py
 
@@ -154,6 +155,44 @@ def check_cameras(args) -> None:
         env.close()
 
 
+def check_parity(args) -> None:
+    """Franka parity: EE observations in the base frame, the Arena gripper's jaw gap, set_joint_initial_pos."""
+    import torch
+    from isaaclab_arena.environments.arena_world import ArenaWorld
+
+    from arena_so101 import JAW_OPEN_RAD
+    from so101_table import SO101TableEnvironmentCfg
+
+    env, arena_env = build(
+        args,
+        SO101TableEnvironmentCfg(embodiment="so101_ik"),
+        prepare=lambda arena_env: arena_env.embodiment.set_joint_initial_pos({"Jaw": 0.5}),
+    )
+    try:
+        obs, _ = env.reset()
+        robot, ee = env.unwrapped.scene["robot"], env.unwrapped.scene["ee_frame"].data
+        jaw = robot.find_joints("Jaw")[0][0]
+        jaw_pos = robot.data.joint_pos.torch[0, jaw].item()
+        assert abs(jaw_pos - 0.5) < TOLERANCE_RAD, f"set_joint_initial_pos: Jaw at {jaw_pos:.3f} rad after reset, not 0.5"
+        policy = obs["policy"]
+        assert torch.allclose(policy["eef_pos"][0], ee.target_pos_source.torch[0, 0], atol=TOLERANCE_M), "eef_pos"
+        assert torch.allclose(policy["eef_quat"][0], ee.target_quat_source.torch[0, 0], atol=1e-4), "eef_quat"
+        assert abs(policy["gripper_pos"][0, 0].item() - jaw_pos) < 1e-6, "gripper_pos is not the Jaw angle"
+
+        world = ArenaWorld(env.unwrapped.scene)
+        gripper = arena_env.embodiment.get_gripper()
+        assert torch.allclose(gripper.get_position_w(world)[0], ee.target_pos_w.torch[0, 0], atol=TOLERANCE_M)
+        gap_half = gripper.get_jaw_gap_m(world)[0].item()  # Jaw at 0.5 rad
+        joint_pos = robot.data.joint_pos.torch.clone()
+        joint_pos[:, jaw] = JAW_OPEN_RAD
+        robot.write_joint_state_to_sim(joint_pos, torch.zeros_like(joint_pos))
+        gap_open = gripper.get_jaw_gap_m(world)[0].item()
+        assert gap_half < gap_open and abs(gap_open - 0.140) < 5e-3, f"jaw gap {gap_half:.3f} m at 0.5 rad, {gap_open:.3f} m open"
+        print(f"[smoke_test] parity: OK (eef obs match ee_frame; jaw gap {gap_half * 1e3:.0f} mm at 0.5 rad, {gap_open * 1e3:.0f} mm open)")
+    finally:
+        env.close()
+
+
 def main() -> None:
     from isaaclab_arena.cli.isaaclab_arena_cli import get_isaaclab_arena_cli_parser
     from isaaclab_arena.utils.isaaclab_utils.simulation_app import SimulationAppContext, teardown_simulation_app
@@ -163,7 +202,7 @@ def main() -> None:
         for embodiment_name in EMBODIMENTS:
             check(embodiment_name, args)
             teardown_simulation_app(make_new_stage=True)
-        for check_fn in (check_placement, check_cameras):
+        for check_fn in (check_placement, check_cameras, check_parity):
             check_fn(args)
             teardown_simulation_app(make_new_stage=True)
         print("[smoke_test] all checks OK")

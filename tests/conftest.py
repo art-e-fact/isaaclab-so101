@@ -81,12 +81,20 @@ def isaac(monkeypatch):
     class EmbodimentBase:
         def __init__(self, *args, **kwargs):
             self.event_config = None
+            self.base_kwargs = kwargs  # what the SO-101 classes pass through
 
         def get_events_cfg(self):
             return self.event_config
 
         def add_camera_variations(self, camera_rig):
             pass
+
+        def set_joint_initial_pos(self, joint_pos):
+            self.joint_initial_pos = dict(joint_pos)
+
+    class ParallelJawGripper:
+        def get_opening_width_m(self, world):
+            return self.get_jaw_gap_m(world)
 
     class ArenaCameraCfg:
         def set_use_tiled_camera(self, use_tiled_camera):
@@ -110,6 +118,7 @@ def isaac(monkeypatch):
         "isaaclab_arena.assets.device_library": {"TeleopDeviceBase": TeleopDeviceBase},
         "isaaclab_arena.assets.register": {"register_asset": _identity, "register_device": _identity},
         "isaaclab_arena.embodiments.embodiment_base": {"EmbodimentBase": EmbodimentBase},
+        "isaaclab_arena.embodiments.gripper": {"ParallelJawGripper": ParallelJawGripper},
         "isaaclab_arena.utils.cameras": {"ArenaCameraCfg": ArenaCameraCfg},
         "isaaclab.actuators": {},
         "isaaclab.assets.articulation": {},
