@@ -37,6 +37,11 @@ JOINT_LIMITS_RAD = tuple((math.radians(lo), math.radians(hi)) for lo, hi in JOIN
 # Jaw targets for the binary gripper: the USD Jaw limits.
 JAW_CLOSE_RAD, JAW_OPEN_RAD = JOINT_LIMITS_RAD[-1]
 
+# Tool center point: between the jaw tips with the jaw closed, in the ``gripper`` link frame (metres), whose
+# -Z axis runs along the jaws. Measured from the USD meshes: fixed tip (-0.010, 0.000, -0.103), moving tip at
+# Jaw = -10° (-0.004, 0.000, -0.101). The IK action, ``ee_frame`` and the cuRobo tool frame all target it.
+TCP_OFFSET = (-0.007, 0.0, -0.102)
+
 # Default / home joint pose in radians (ArticulationCfg init_state, gamepad reset, cuRobo retract).
 # Read-only; copy with dict(HOME_JOINT_POS) before modifying.
 HOME_JOINT_POS = MappingProxyType(

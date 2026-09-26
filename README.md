@@ -40,8 +40,8 @@ import arena_so101
 arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_leader, so101_gamepad
 ```
 
-Joint names, limits, the home pose, Jaw open/close targets and asset paths are exported as
-plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, USD_PATH`.
+Joint names, limits, the home pose, Jaw open/close targets, the TCP offset and asset paths are exported as
+plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, TCP_OFFSET, USD_PATH`.
 `HOME_JOINT_POS` is read-only; pass `dict(HOME_JOINT_POS)` to configs. `CUROBO_ROBOT_YML` exists only
 after running the cuRobo generator (see below).
 
@@ -110,6 +110,8 @@ The robot USD comes from the [Sim-to-Real-SO-101-Workshop](https://github.com/is
 
 
 `so101_ik` is a 5-DOF arm: DLS tracks EE position and does best-effort orientation on the 6D pose command.
+The IK command and `ee_frame` target the TCP between the jaw tips (`TCP_OFFSET`: 10.2 cm along the jaws from the
+wrist-roll axis, in the `gripper` link frame), so rotations pivot about the tips and reach rewards measure to them.
 
 ## cuRobo planning assets
 
@@ -128,9 +130,9 @@ Outputs:
 
 | File | Purpose |
 |------|---------|
-| `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching sim joint names |
+| `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching sim joint names, plus a fixed `tcp` link at `TCP_OFFSET` |
 | `embodiments/data/curobo/meshes/` | Link meshes referenced by the URDF |
-| `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg` for `MotionPlanner` |
+| `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg` for `MotionPlanner`: plans target `tcp` (between the jaw tips); objects attach at `gripper` |
 
 Rebuild the spheres from the URDF generated above, without Isaac Sim (still needs CUDA +
 nvidia-curobo, and `usd-core` to read the authored spheres):

@@ -35,7 +35,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
-from arena_so101.constants import CUROBO_ROBOT_YML, HOME_JOINT_POS, JAW_CLOSE_RAD, JAW_OPEN_RAD, USD_PATH
+from arena_so101.constants import CUROBO_ROBOT_YML, HOME_JOINT_POS, JAW_CLOSE_RAD, JAW_OPEN_RAD, TCP_OFFSET, USD_PATH
 
 # ---------------------------------------------------------------------------
 # Paths & SO-101 constants (workshop USD / arena_so101.embodiments.so101)
@@ -117,6 +117,22 @@ def sanitize_urdf_for_curobo(
         tree.write(urdf_path, encoding="unicode")
     return changed
 
+
+
+def add_tcp_link(urdf_path: Path, *, parent: str) -> bool:
+    """Add a fixed ``tcp`` link at ``TCP_OFFSET`` from ``parent`` (between the jaw tips), the frame cuRobo plans
+    for. Returns False when the URDF already has one."""
+    tree = ET.parse(urdf_path)
+    root = tree.getroot()
+    if root.find("link[@name='tcp']") is not None:
+        return False
+    ET.SubElement(root, "link", name="tcp")
+    joint = ET.SubElement(root, "joint", name="tcp_joint", type="fixed")
+    ET.SubElement(joint, "parent", link=parent)
+    ET.SubElement(joint, "child", link="tcp")
+    ET.SubElement(joint, "origin", xyz=" ".join(str(v) for v in TCP_OFFSET), rpy="0 0 0")
+    tree.write(urdf_path)
+    return True
 
 def convert_usd_to_urdf(usd_path: Path, output_dir: Path) -> tuple[Path, Path]:
     """Export workshop USD to URDF + meshes under ``output_dir``."""
@@ -221,6 +237,7 @@ def build_curobo_yaml(
     output_yml: Path,
     *,
     tool_frame: str,
+    ee_link: str,
     base_link: str,
     sphere_density: float = 1.0,
     num_collision_samples: int = 1000,
@@ -242,7 +259,7 @@ def build_curobo_yaml(
 
     print(f"Building cuRobo model from URDF: {urdf_path}")
     print(f"  meshes: {asset_path}")
-    print(f"  tool frame: {tool_frame}  base: {base_link}")
+    print(f"  tool frame: {tool_frame}  ee link: {ee_link}  base: {base_link}")
 
     builder = RobotBuilder(
         urdf_path=str(urdf_path.resolve()),
@@ -305,6 +322,7 @@ def build_curobo_yaml(
         urdf_path=urdf_path,
         asset_path=asset_path,
         tool_frame=tool_frame,
+        ee_link=ee_link,
         jaw_joint=_pick_name(_JAW_JOINT_CANDIDATES, revolute_joints, kind="jaw joint"),
     )
     raw_yml.unlink(missing_ok=True)
@@ -348,9 +366,14 @@ def patch_so101_robot_yaml(
     urdf_path: Path,
     asset_path: Path,
     tool_frame: str,
+    ee_link: str,
     jaw_joint: str,
 ) -> Path:
-    """Wrap builder output under ``robot_cfg`` and apply SO-101 planning defaults."""
+    """Wrap builder output under ``robot_cfg`` and apply SO-101 planning defaults.
+
+    ``tool_frame`` (the ``tcp`` link) is what plans target; ``ee_link`` is the physical hand link that attached
+    objects and the self-collision ignore list hang off.
+    """
     import yaml
 
     with raw_yml.open() as f:
@@ -371,7 +394,7 @@ def patch_so101_robot_yaml(
     kin["tool_frames"] = [tool_frame]
     kin["lock_joints"] = {jaw_joint: JAW_OPEN_RAD}
 
-    # Grasp attach frame (same pattern as franka.yml) — parent is the EE link.
+    # Grasp attach frame (same pattern as franka.yml) — parent is the physical EE link.
     # Builder may serialize these fields as explicit nulls; setdefault won't replace None.
     extra_spheres = _ensure_mapping(kin, "extra_collision_spheres")
     extra_spheres["attached_object"] = 36
@@ -381,7 +404,7 @@ def patch_so101_robot_yaml(
         "joint_name": "attach_joint",
         "joint_type": "FIXED",
         "link_name": "attached_object",
-        "parent_link_name": tool_frame,
+        "parent_link_name": ee_link,
     }
     collision_links = _ensure_list(kin, "collision_link_names")
     if "attached_object" not in collision_links:
@@ -389,10 +412,10 @@ def patch_so101_robot_yaml(
     self_buf = _ensure_mapping(kin, "self_collision_buffer")
     self_buf.setdefault("attached_object", 0.0)
     self_ignore = _ensure_mapping(kin, "self_collision_ignore")
-    ee_ignore = self_ignore.get(tool_frame)
+    ee_ignore = self_ignore.get(ee_link)
     if not isinstance(ee_ignore, list):
         ee_ignore = []
-        self_ignore[tool_frame] = ee_ignore
+        self_ignore[ee_link] = ee_ignore
     if "attached_object" not in ee_ignore:
         ee_ignore.append("attached_object")
 
@@ -424,7 +447,7 @@ def patch_so101_robot_yaml(
         "gripper_joint_names": [jaw_joint],
         "gripper_open_joint_pos": {jaw_joint: JAW_OPEN_RAD},
         "gripper_closed_joint_pos": {jaw_joint: JAW_CLOSE_RAD},
-        "hand_link_names": [tool_frame],
+        "hand_link_names": [ee_link],
         "home_joint_pos": dict(HOME_JOINT_POS),
     }
 
@@ -516,7 +539,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--tool-frame",
         type=str,
         default=None,
-        help="Override EE / tool link name (default: auto-detect gripper).",
+        help="Override the end-effector link the tcp link hangs off (default: auto-detect gripper).",
     )
     parser.add_argument(
         "--sphere-colliders",
@@ -613,11 +636,13 @@ def main(argv: list[str] | None = None) -> int:
         except RuntimeError:
             print(f"Using URDF root link as base: {base_link}")
 
-        tool_frame = args.tool_frame or _pick_name(
-            _EE_LINK_CANDIDATES, link_names, kind="end-effector link"
-        )
+        ee_link = args.tool_frame or _pick_name(_EE_LINK_CANDIDATES, link_names, kind="end-effector link")
+        # Plans target the TCP between the jaw tips, a fixed link off the EE link.
+        if add_tcp_link(urdf_path, parent=ee_link):
+            print(f"Added the tcp link at {TCP_OFFSET} from {ee_link}")
+        tool_frame = "tcp"
         print(f"URDF joints: {joint_names}")
-        print(f"Resolved base={base_link}  tool_frame={tool_frame}")
+        print(f"Resolved base={base_link}  ee_link={ee_link}  tool_frame={tool_frame}")
 
         if args.skip_build:
             print("Skipping cuRobo build (--skip-build).")
@@ -640,6 +665,7 @@ def main(argv: list[str] | None = None) -> int:
             mesh_dir,
             output_yml,
             tool_frame=tool_frame,
+            ee_link=ee_link,
             base_link=base_link,
             sphere_density=args.sphere_density,
             num_collision_samples=args.num_collision_samples,

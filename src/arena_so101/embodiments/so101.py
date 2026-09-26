@@ -25,6 +25,7 @@ from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import CameraCfg, FrameTransformerCfg
+from isaaclab.sensors.frame_transformer.frame_transformer_cfg import OffsetCfg
 from isaaclab.utils.configclass import configclass
 from isaaclab.utils.math import quat_apply_inverse
 
@@ -36,7 +37,7 @@ from isaaclab_arena.utils.pose import Pose, PosePerEnv
 
 from arena_so101.assets import SO101_CFG, SO101_HIGH_PD_CFG, SO101_WRIST_CAMERA_CFG
 from arena_so101.cameras import look_at_offset
-from arena_so101.constants import ARM_JOINT_NAMES, JAW_CLOSE_RAD, JAW_OPEN_RAD, SIM_JOINT_NAMES
+from arena_so101.constants import ARM_JOINT_NAMES, JAW_CLOSE_RAD, JAW_OPEN_RAD, SIM_JOINT_NAMES, TCP_OFFSET
 
 # The arm faces +X only because SO101_CFG.init_state yaws its base 90° (see assets.py). Arena writes the
 # Pose it is given straight into init_state and the root-pose reset event, so a plain Pose() would drop
@@ -50,14 +51,15 @@ _BASE_TO_PLACEMENT = Pose(rotation_xyzw=(*(-c for c in SO101_CFG.init_state.rot[
 class SO101SceneCfg:
     robot: ArticulationCfg = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
-    # EE frame for reach/place rewards (same target as workshop).
+    # EE frame at the TCP, between the jaw tips: reach/place rewards and Arena's gripper read it.
     ee_frame: FrameTransformerCfg = FrameTransformerCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
         debug_vis=False,
         target_frames=[
             FrameTransformerCfg.FrameCfg(
                 prim_path="{ENV_REGEX_NS}/Robot/gripper",
-                name="gripper",
+                name="end_effector",
+                offset=OffsetCfg(pos=TCP_OFFSET),
             ),
         ],
     )
@@ -93,7 +95,8 @@ class SO101IKActionsCfg:
         body_name="gripper",
         controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=True, ik_method="dls"),
         scale=0.5,
-        body_offset=DifferentialInverseKinematicsActionCfg.OffsetCfg(pos=[0.0, 0.0, 0.0]),
+        # Commands move the TCP, so rotations pivot about the jaw tips rather than the wrist.
+        body_offset=DifferentialInverseKinematicsActionCfg.OffsetCfg(pos=TCP_OFFSET),
     )
 
     gripper_action: ActionTermCfg = BinaryJointPositionActionCfg(

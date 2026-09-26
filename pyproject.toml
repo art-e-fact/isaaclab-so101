@@ -19,7 +19,7 @@ lerobot = ["lerobot[dataset]>=0.6.1,<0.7"]
 # Physical SO-101 leader arm teleop (so101_leader device).
 leader = ["lerobot[feetech]>=0.6.1,<0.7"]
 # Lint and tests. The tests stub Isaac Sim / Lab / Arena; torch and numpy are the real ones.
-dev = ["pytest", "ruff", "torch", "numpy"]
+dev = ["pytest", "ruff", "torch", "numpy", "pyyaml"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

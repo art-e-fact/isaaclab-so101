@@ -35,7 +35,9 @@ def build(args, cfg=None, prepare=None):
 
 def check(embodiment_name: str, args) -> None:
     import torch
+    from isaaclab.utils.math import quat_apply
 
+    from arena_so101 import TCP_OFFSET
     from so101_table import SO101TableEnvironmentCfg
 
     env, _ = build(args, SO101TableEnvironmentCfg(embodiment=embodiment_name))
@@ -49,12 +51,19 @@ def check(embodiment_name: str, args) -> None:
         for _ in range(STEPS):
             env.step(actions)
 
+        # ee_frame reports the TCP: the gripper link's pose composed with TCP_OFFSET.
+        gripper = robot.find_bodies("gripper")[0][0]
+        body_pos, body_quat = robot.data.body_pos_w.torch[0, gripper], robot.data.body_quat_w.torch[0, gripper]
+        tcp = env.unwrapped.scene["ee_frame"].data.target_pos_w.torch[0, 0]
+        expected = body_pos + quat_apply(body_quat, body_pos.new_tensor(TCP_OFFSET))
+        assert (tcp - expected).norm() < TOLERANCE_M, f"{embodiment_name}: ee_frame at {tcp.tolist()}, TCP {expected.tolist()}"
+
         # Move the arm away, then reset: the embodiment's reset event must bring it back.
         robot.write_joint_state_to_sim(initial + 0.3, torch.zeros_like(initial))
         env.reset()
         error = (robot.data.joint_pos - initial).abs().max().item()
         assert error < TOLERANCE_RAD, f"{embodiment_name}: arm is {error:.3f} rad from its initial pose after reset"
-        print(f"[smoke_test] {embodiment_name}: OK ({STEPS} steps, reset error {error:.1e} rad)")
+        print(f"[smoke_test] {embodiment_name}: OK ({STEPS} steps, ee_frame at the TCP, reset error {error:.1e} rad)")
     finally:
         env.close()
 

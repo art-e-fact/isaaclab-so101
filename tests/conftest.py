@@ -117,6 +117,7 @@ def isaac(monkeypatch):
         "isaaclab.devices": {},
         "isaaclab.envs.mdp.actions.actions_cfg": {},
         "isaaclab.sensors": {},
+        "isaaclab.sensors.frame_transformer.frame_transformer_cfg": {},
         "isaaclab.sim": {},
         "isaaclab.utils.math": {},
         "isaaclab_arena.embodiments.common.arm_mode": {},
