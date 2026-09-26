@@ -18,6 +18,7 @@ from arena_so101.constants import (
     JOINT_LIMITS_DEG,
     JOINT_LIMITS_RAD,
     SIM_JOINT_NAMES,
+    TCP_OFFSET,
     USD_PATH,
 )
 
@@ -35,6 +36,7 @@ __all__ = [
     "JOINT_LIMITS_DEG",
     "JOINT_LIMITS_RAD",
     "SIM_JOINT_NAMES",
+    "TCP_OFFSET",
     "USD_PATH",
     "__version__",
     "register",

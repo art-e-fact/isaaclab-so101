@@ -37,6 +37,16 @@ JOINT_LIMITS_RAD = tuple((math.radians(lo), math.radians(hi)) for lo, hi in JOIN
 # Jaw targets for the binary gripper: the USD Jaw limits.
 JAW_CLOSE_RAD, JAW_OPEN_RAD = JOINT_LIMITS_RAD[-1]
 
+# Tool center point: between the jaw tips with the jaw closed, in the ``gripper`` link frame (metres), whose
+# -Z axis runs along the jaws. Measured from the USD meshes: fixed tip (-0.010, 0.000, -0.103), moving tip at
+# Jaw = -10° (-0.004, 0.000, -0.101). The IK action, ``ee_frame`` and the cuRobo tool frame all target it.
+TCP_OFFSET = (-0.007, 0.0, -0.102)
+
+# Jaw geometry for the gap between the tips: the moving tip at Jaw = 0 and the fixed tip, relative to the Jaw
+# pivot in the ``gripper`` frame's XZ plane (the jaw swings about the pivot's -Y axis). Measured from the USD.
+JAW_TIP_XZ = (-0.0100, -0.0810)
+FIXED_JAW_TIP_XZ = (-0.0304, -0.0799)
+
 # Default / home joint pose in radians (ArticulationCfg init_state, gamepad reset, cuRobo retract).
 # Read-only; copy with dict(HOME_JOINT_POS) before modifying.
 HOME_JOINT_POS = MappingProxyType(
@@ -55,6 +65,6 @@ _DATA_DIR = Path(__file__).resolve().parent / "embodiments" / "data"
 # Robot USD shipped with the package.
 USD_PATH = _DATA_DIR / "SO-ARM101-USD.usd"
 
-# cuRobo robot config written by ``python -m arena_so101.generate_curobo_config``.
-# Not shipped: this file exists only after running the generator.
+# cuRobo robot config, shipped (regenerate with ``python -m arena_so101.generate_curobo_config``). Its
+# ``urdf_path`` is relative to the file: load it with ``arena_so101.curobo.robot_cfg``.
 CUROBO_ROBOT_YML = _DATA_DIR / "curobo" / "so101.yml"

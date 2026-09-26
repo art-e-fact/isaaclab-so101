@@ -40,10 +40,10 @@ import arena_so101
 arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_leader, so101_gamepad
 ```
 
-Joint names, limits, the home pose, Jaw open/close targets and asset paths are exported as
-plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, USD_PATH`.
-`HOME_JOINT_POS` is read-only; pass `dict(HOME_JOINT_POS)` to configs. `CUROBO_ROBOT_YML` exists only
-after running the cuRobo generator (see below).
+Joint names, limits, the home pose, Jaw open/close targets, the TCP offset and asset paths are exported as
+plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, TCP_OFFSET, USD_PATH`.
+`HOME_JOINT_POS` is read-only; pass `dict(HOME_JOINT_POS)` to configs. `CUROBO_ROBOT_YML` is the shipped cuRobo
+config (see below).
 
 Then use like any Arena embodiment:
 
@@ -61,7 +61,43 @@ is a full one.
 
 See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
 
-> TODO: Document the camera configuration.
+### Cameras
+
+`enable_cameras=True` (the example's `--enable_cameras`) adds two 640×480 RGB cameras, observed in the `camera_obs`
+group as `camera_ego_rgb` and `external_camera_rgb`:
+
+- `camera_ego`: the workshop's wrist camera on the gripper (`SO101_WRIST_CAMERA_CFG`).
+- `external_camera`: a third-person view attached to the base link, so it moves with the robot. Aim it with
+  `embodiment.set_external_camera_view(eye, target)`, both relative to the robot base with the arm facing +X.
+  The default is eye `(0.55, -0.6, 0.45)`, target `(0.12, 0, 0.1)`.
+
+Both carry Arena's camera extrinsics and intrinsics variations. `arena_so101.cameras.look_at_offset(eye, target)`
+builds the `CameraCfg.OffsetCfg` for a camera of your own (points in the camera's parent frame).
+
+### Recording LeRobot datasets
+
+`arena_so101.lerobot` (the `lerobot` extra) writes rollouts straight into a LeRobot v3 dataset. `observation.state`
+is `policy.joint_pos`; `action` is the absolute joint targets the sim received for that step, so all three
+embodiments record the same joint-space action (relative and IK actions end as position targets too); and there is
+one video per camera in `cameras` (sim observation term → dataset key; the default is the two embodiment cameras as
+`observation.images.ego_view` / `exterior_image`). Frames are uint8 or float in [0, 1], as `camera_obs` gives them.
+
+```python
+from arena_so101.lerobot import SO101LeRobotRecorder, camera_shapes, joint_targets
+
+with SO101LeRobotRecorder(
+    root="datasets/lift", repo_id="me/so101_lift", fps=round(1 / env.unwrapped.step_dt),
+    cameras={"camera_ego_rgb": "observation.images.wrist"}, image_shapes=camera_shapes(env),
+) as recorder:
+    obs, _ = env.reset()
+    for _ in range(200):
+        snapshot = recorder.snapshot_observation(obs)  # the env reuses its buffers
+        obs, *_ = env.step(policy(obs))
+        recorder.add_transition(snapshot, joint_targets(env), task="Lift the cube.")
+    recorder.save_episode()  # or discard_episode(); close() drops whatever is pending
+```
+
+`resume=True` appends to an existing dataset (same fps and features), `overwrite=True` replaces it.
 
 ## Isaac Lab (without Arena)
 
@@ -89,44 +125,83 @@ USD yet: it carries its own world joint, and Newton won't merge it with the one 
 Every episode reset returns the arm to `init_state.joint_pos`: the home pose, or whatever you set with
 `set_joint_initial_pos`. Pass `reset_joint_noise=<rad>` to the constructor to add uniform noise to each joint.
 
+Observations (`policy` group): `actions`, `joint_pos`, `joint_vel`, and for Franka parity `eef_pos` / `eef_quat`
+(the TCP in the robot base frame, what `FrankaMimicEnv`-style code reads) and `gripper_pos` (the Jaw angle).
+`initial_joint_pose={"Jaw": 0.5, ...}` in the constructor overrides the home pose for spawning and resets.
+`get_gripper()` returns an Arena `ParallelJawGripper`: `get_jaw_gap_m` from the Jaw angle and the jaw geometry,
+`get_position_w` at the TCP. Other constructor keywords (`collision_mode`, `spawn_cfg_addon`) go to Arena's
+`EmbodimentBase`.
+
+The arm faces +X. `set_initial_pose(Pose(position_xyz=...))` moves it and keeps it facing +X, and so do
+placement relations (`embodiment.add_relation(On(table))`); a `rotation_xyzw` turns it from there. (The USD's
+base link is yawed 90° to face +X; the embodiment composes that yaw into every pose Arena writes, so you never
+pass it yourself.)
+
 USD joints: `Rotation`, `Pitch`, `Elbow`, `Wrist_Pitch`, `Wrist_Roll`, `Jaw`.
 The robot USD comes from the [Sim-to-Real-SO-101-Workshop](https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop).
 
 
 `so101_ik` is a 5-DOF arm: DLS tracks EE position and does best-effort orientation on the 6D pose command.
+The IK command and `ee_frame` target the TCP between the jaw tips (`TCP_OFFSET`: 10.2 cm along the jaws from the
+wrist-roll axis, in the `gripper` link frame), so rotations pivot about the tips and reach rewards measure to them.
 
 ## cuRobo planning assets
 
-Generate a URDF (from the workshop USD) plus a cuRobo robot YAML (collision spheres,
-self-collision ignore matrix, locked Jaw, home pose) under the package's
-`embodiments/data/curobo/` (`src/arena_so101/...` in a checkout; `--output-dir` writes elsewhere):
+The package ships a cuRobo v0.8 robot config, `so101.yml`, and the URDF it refers to (exported from the workshop
+USD), under `embodiments/data/curobo/`. Load it with `robot_cfg()`, which turns the YAML's relative `urdf_path`
+into an absolute one (cuRobo would look for a relative path under its own assets):
 
-```bash
-# Inside the Isaac Sim / Arena env (needs CUDA + nvidia-curobo)
-python -m arena_so101.generate_curobo_config --headless
+```python
+from curobo.motion_planner import MotionPlanner, MotionPlannerCfg
+
+from arena_so101.curobo import robot_cfg
+
+planner = MotionPlanner(MotionPlannerCfg.create(robot=robot_cfg()))  # plans target `tcp`, the point between the jaw tips
 ```
-
-> TODO: Document manually authoring collision spheres.
-
-Outputs:
 
 | File | Purpose |
 |------|---------|
-| `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching sim joint names |
-| `embodiments/data/curobo/meshes/` | Link meshes referenced by the URDF |
-| `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg` for `MotionPlanner` |
+| `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg`: collision spheres, self-collision ignore matrix, locked Jaw, home pose; plans target `tcp`, objects attach at `gripper` |
+| `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching the sim joint names, plus the fixed `tcp` link at `TCP_OFFSET` |
+| `embodiments/data/curobo/meshes/` | Link meshes (41 MB), not shipped: only the generator needs them |
 
-Rebuild the spheres from the URDF generated above, without Isaac Sim (still needs CUDA +
-nvidia-curobo, and `usd-core` to read the authored spheres):
+**Supported cuRobo: 0.8.** `so101.yml` and `robot_cfg()` target the 0.8 API (`curobo.motion_planner`), which is
+what the shape-sorting demo plans with. Isaac Lab's `isaaclab_mimic` planner and Arena's `isaaclab_arena_curobo`
+placement-reachability check still pin cuRobo 0.7.7 (`ebb7170`): 0.8.0 removed every module they import, and
+0.7.7's loader rejects this YAML (`tool_frames` instead of `ee_link`, `format_version`), so no environment can hold
+both. SO-101 therefore registers no `CuroboEmbodimentCfg`, and Arena's `ik_reachable` placement check is unsupported
+until Arena moves to 0.8. The YAML's `arena_so101:` block already carries what that registration needs
+(`ee_link_name`, the gripper joint with its open and closed positions, `hand_link_names`).
+
+### Regenerating (maintainers)
+
+`generate_curobo_config` converts the USD to URDF (Isaac Sim), fits collision spheres (cuRobo, CUDA) and writes the
+YAML. It never writes into the installed package: the default output is `~/.cache/arena_so101/curobo`, and a
+checkout refreshes the shipped files with `--output-dir` (`meshes/` stays untracked):
 
 ```bash
-python -m arena_so101.generate_curobo_config --skip-usd-convert
+# Inside the Isaac Sim / Arena env (needs CUDA + nvidia-curobo)
+python -m arena_so101.generate_curobo_config --headless --output-dir src/arena_so101/embodiments/data/curobo
 ```
 
-It reads `urdf/` and `meshes/` from the output directory. For a URDF elsewhere, pass `--urdf <file>`
-and `--asset-path <mesh dir>`.
+Rebuild only the spheres from the URDF and meshes already in the output directory, without Isaac Sim (still needs
+CUDA + nvidia-curobo, and `usd-core` to read the authored spheres):
 
-Add `--visualize` to inspect fitted spheres in Viser.
+```bash
+python -m arena_so101.generate_curobo_config --skip-usd-convert --output-dir src/arena_so101/embodiments/data/curobo
+```
+
+For a URDF elsewhere, pass `--urdf <file>` and `--asset-path <mesh dir>`. Add `--visualize` to inspect the fitted
+spheres in Viser.
+
+### Authoring collision spheres
+
+The auto-fit covers the arm well but not the thin jaws, so `embodiments/data/curobo_sphere_colliders.usda` carries
+hand-placed spheres for the `gripper` and `jaw` links, and the generator uses them instead of the fit for those
+links. To edit them, open the USDA in Isaac Sim (it references the robot USD next to it), and under the link's prim
+(`over "jaw"`, `over "gripper"`) add or move `Sphere` prims whose name contains `curobo_collider_sphere`; the
+generator reads each sphere's `radius` and `xformOp:translate` (link-local, metres) with `pxr` alone. A link with
+at least one authored sphere keeps only the authored ones. Then regenerate as above (`--skip-usd-convert` is enough).
 
 ### Joint-space gamepad layout (`so101_abs_joint` + `so101_gamepad`)
 

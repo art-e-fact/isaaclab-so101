@@ -8,3 +8,5 @@ logs/
 *.local/
 # examples/arena/setup.sh clones Arena here
 examples/arena/IsaacLab-Arena/
+# setuptools build output (uv pip install .)
+build/
