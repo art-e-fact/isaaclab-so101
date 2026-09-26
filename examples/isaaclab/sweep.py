@@ -21,7 +21,7 @@ app = AppLauncher(args).app
 import isaaclab.sim as sim_utils
 from isaaclab.assets import AssetBaseCfg
 from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
-from isaaclab.utils import configclass
+from isaaclab.utils.configclass import configclass
 
 from arena_so101 import SIM_JOINT_NAMES
 from arena_so101.assets import SO101_CFG

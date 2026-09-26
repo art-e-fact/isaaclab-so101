@@ -11,7 +11,7 @@ import torch
 import carb
 import omni
 from isaaclab.devices.device_base import DeviceBase, DeviceCfg
-from isaaclab.utils import configclass
+from isaaclab.utils.configclass import configclass
 
 from arena_so101.constants import HOME_JOINT_POS, JAW_CLOSE_RAD, JAW_OPEN_RAD, JOINT_LIMITS_RAD, SIM_JOINT_NAMES
 

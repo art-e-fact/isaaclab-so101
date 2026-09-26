@@ -17,7 +17,7 @@ import gymnasium as gym
 import isaaclab.envs.mdp as mdp
 from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
-from isaaclab.utils import configclass
+from isaaclab.utils.configclass import configclass
 from isaaclab.visualizers import VisualizerCfg
 from isaaclab_tasks.core.reach.config.franka.agents.rsl_rl_ppo_cfg import FrankaReachPPORunnerCfg
 from isaaclab_tasks.core.reach.reach_env_cfg import ReachEnvCfg

@@ -100,7 +100,9 @@ def isaac(monkeypatch):
             "ObservationGroupCfg": ObservationGroupCfg,
             "SceneEntityCfg": lambda name, **kwargs: SimpleNamespace(name=name, **kwargs),
         },
-        "isaaclab.utils": {"configclass": _configclass},
+        # Imported as ``from isaaclab.utils.configclass import configclass``: ``isaaclab.utils`` is a lazy
+        # package, and its ``configclass`` attribute becomes the submodule once anything imports that directly.
+        "isaaclab.utils.configclass": {"configclass": _configclass},
         "isaaclab_arena.assets.device_library": {"TeleopDeviceBase": TeleopDeviceBase},
         "isaaclab_arena.assets.register": {"register_asset": _identity, "register_device": _identity},
         "isaaclab_arena.embodiments.embodiment_base": {"EmbodimentBase": EmbodimentBase},

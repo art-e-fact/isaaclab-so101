@@ -12,7 +12,7 @@ import torch
 import carb
 import omni
 from isaaclab.devices.device_base import DeviceBase, DeviceCfg
-from isaaclab.utils import configclass
+from isaaclab.utils.configclass import configclass
 
 from arena_so101.mapping import leader_dict_to_sim_radians
 
