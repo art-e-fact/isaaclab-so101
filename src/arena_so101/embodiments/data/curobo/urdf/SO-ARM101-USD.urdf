@@ -1,0 +1,375 @@
+<robot name="so101_new_calib">
+  <link name="base">
+    <inertial>
+      <origin xyz="0.020739 0.00204287 0.065966" rpy="0 0 0" />
+      <mass value="0.147" />
+      <inertia ixx="0.00013612" ixy="-0.00000048" ixz="0.00000015" iyy="0.00011469" iyz="0.00000497" izz="0.00013037" />
+    </inertial>
+    <visual name="mesh">
+      <origin xyz="0.0206915 0.0221255 0.0300817" rpy="1.5707999 0 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_13.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0207909 0.0221255 0.0300817" rpy="1.5707999 0 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_14.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0207909 -0.0105745 0.0761817" rpy="0 0 -1.5707999" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0205915 0.0467435 0.0798817" rpy="1.5707999 0 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_16.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0206915 0.0221255 0.0300817" rpy="1.5707999 0 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_13.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0207909 0.0221255 0.0300817" rpy="1.5707999 0 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_14.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0207909 -0.0105745 0.0761817" rpy="0 0 -1.5707999" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0205915 0.0467435 0.0798817" rpy="1.5707999 0 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_16.obj" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="shoulder">
+    <inertial>
+      <origin xyz="-0.0307604 -0.00001667 -0.0252713" rpy="0 0 0" />
+      <mass value="0.100006" />
+      <inertia ixx="0.00008376" ixy="-0.00000007" ixz="0.00000116" iyy="0.00008104" iyz="-0.00000019" izz="0.00002398" />
+    </inertial>
+    <visual name="mesh">
+      <origin xyz="-0.0303992 0.00042224 -0.0417" rpy="-1.54881943 1.57079271 -3.11961937" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.0675992 -0.00017776 0.0158499" rpy="-1.54881943 -1.57079271 3.11961939" />
+      <geometry>
+        <mesh filename="../meshes/mesh_17.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0122008 0.00002224 0.0464" rpy="-1.5707999 0 0.00000001" />
+      <geometry>
+        <mesh filename="../meshes/mesh_18.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.0303992 0.00042224 -0.0417" rpy="-1.54881943 1.57079271 -3.11961937" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.0675992 -0.00017776 0.0158499" rpy="-1.54881943 -1.57079271 3.11961939" />
+      <geometry>
+        <mesh filename="../meshes/mesh_17.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0122008 0.00002224 0.0464" rpy="-1.5707999 0 0.00000001" />
+      <geometry>
+        <mesh filename="../meshes/mesh_18.obj" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="upper_arm">
+    <inertial>
+      <origin xyz="-0.0898471 -0.00838224 0.0184089" rpy="0 0 0" />
+      <mass value="0.103" />
+      <inertia ixx="0.0000408" ixy="0.00001978" ixz="-0" iyy="0.00014732" iyz="-0.00000002" izz="0.00014249" />
+    </inertial>
+    <visual name="mesh">
+      <origin xyz="-0.11257001 -0.01549999 0.01870001" rpy="-3.14159012 -0.00000006 -1.57079997" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.06508501 0.012 0.0182" rpy="3.14159005 -0 -0.00000002" />
+      <geometry>
+        <mesh filename="../meshes/mesh_19.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.11257001 -0.01549999 0.01870001" rpy="-3.14159012 -0.00000006 -1.57079997" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.06508501 0.012 0.0182" rpy="3.14159005 -0 -0.00000002" />
+      <geometry>
+        <mesh filename="../meshes/mesh_19.obj" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="lower_arm">
+    <inertial>
+      <origin xyz="-0.0980701 0.00324376 0.0182831" rpy="0 0 0" />
+      <mass value="0.104" />
+      <inertia ixx="0.00002874" ixy="-0.00000741" ixz="-0.00000125" iyy="0.00015984" iyz="-0.0000001" izz="0.00014529" />
+    </inertial>
+    <visual name="mesh">
+      <origin xyz="-0.0648499 -0.032 0.0182" rpy="-3.14159013 0 0.00000003" />
+      <geometry>
+        <mesh filename="../meshes/mesh_20.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.0648499 -0.032 0.018" rpy="-3.14159013 0 0.00000003" />
+      <geometry>
+        <mesh filename="../meshes/mesh_21.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.1224 0.0052 0.0187" rpy="-3.14159011 0 -3.14159009" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.0648499 -0.032 0.0182" rpy="-3.14159013 0 0.00000003" />
+      <geometry>
+        <mesh filename="../meshes/mesh_20.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.0648499 -0.032 0.018" rpy="-3.14159013 0 0.00000003" />
+      <geometry>
+        <mesh filename="../meshes/mesh_21.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0.1224 0.0052 0.0187" rpy="-3.14159011 0 -3.14159009" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="wrist">
+    <inertial>
+      <origin xyz="-0.00010331 -0.0386143 0.0281156" rpy="0 0 0" />
+      <mass value="0.079" />
+      <inertia ixx="0.00003683" ixy="0.00000002" ixz="0.00000005" iyy="0.00002539" iyz="-0.00000364" izz="0.000021" />
+    </inertial>
+    <visual name="mesh">
+      <origin xyz="-0 -0.0424 0.0306" rpy="-1.5550895 1.5707927 -3.12588956" />
+      <geometry>
+        <mesh filename="../meshes/mesh_22.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0 -0.028 0.0181" rpy="1.54251552 -1.57079272 -3.11331557" />
+      <geometry>
+        <mesh filename="../meshes/mesh_23.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0 -0.0424 0.0306" rpy="-1.5550895 1.5707927 -3.12588956" />
+      <geometry>
+        <mesh filename="../meshes/mesh_22.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="-0 -0.028 0.0181" rpy="1.54251552 -1.57079272 -3.11331557" />
+      <geometry>
+        <mesh filename="../meshes/mesh_23.obj" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="gripper">
+    <inertial>
+      <origin xyz="0.00021363 0.00024514 -0.025187" rpy="0 0 0" />
+      <mass value="0.087" />
+      <inertia ixx="0.00002751" ixy="0.00000038" ixz="0.00000573" iyy="0.00004336" iyz="-0.00000028" izz="0.00003451" />
+    </inertial>
+    <visual name="mesh">
+      <origin xyz="0.0077 0.0001 -0.0234" rpy="-1.57079991 -0.00000004 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0 -0.00021821 0.00094971" rpy="-3.14159013 -0.00000004 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_24.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cylinder_012">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cylinder_012_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cube_004">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cube_004_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cone">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cone_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cylinder_021">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cylinder_021_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cube_009">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cube_009_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cylinder_015">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cylinder_015_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cylinder_019">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cylinder_019_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cylinder_023">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cylinder_023_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Sphere">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Sphere_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cube_010">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="0 1.57079628 1.57079633" />
+      <geometry>
+        <mesh filename="../meshes/Cube_010_1.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0.0077 0.0001 -0.0234" rpy="-1.57079991 -0.00000004 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_15.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0 -0.00021821 0.00094971" rpy="-3.14159013 -0.00000004 0" />
+      <geometry>
+        <mesh filename="../meshes/mesh_24.obj" />
+      </geometry>
+    </visual>
+    <visual name="Cube">
+      <origin xyz="-0.00391418 0.0256963 -0.02903579" rpy="1.57079633 0.00000004 -3.14159265" />
+      <geometry>
+        <mesh filename="../meshes/Cube_1.obj" />
+      </geometry>
+    </visual>
+  </link>
+  <link name="jaw">
+    <inertial>
+      <origin xyz="-0.00157495 -0.0300244 0.0192755" rpy="0 0 0" />
+      <mass value="0.012" />
+      <inertia ixx="0.00000661" ixy="0.00000032" ixz="-0.00000001" iyy="0.00000189" iyz="0.00000011" izz="0.00000529" />
+    </inertial>
+    <visual name="mesh">
+      <origin xyz="0 0 0.0189" rpy="0.00000003 0.00000003 -0.00000004" />
+      <geometry>
+        <mesh filename="../meshes/mesh_25.obj" />
+      </geometry>
+    </visual>
+    <visual name="mesh">
+      <origin xyz="0 0 0.0189" rpy="0.00000003 0.00000003 -0.00000004" />
+      <geometry>
+        <mesh filename="../meshes/mesh_25.obj" />
+      </geometry>
+    </visual>
+  </link>
+  <joint name="Rotation" type="revolute">
+    <origin xyz="0.0207909 -0.0230745 0.0948817" rpy="-3.14159012 0 1.57079996" />
+    <parent link="base" />
+    <child link="shoulder" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.91985991" upper="1.91985991" velocity="9.99999945" effort="30" />
+    <dynamics friction="0" />
+    
+  </joint>
+  <joint name="Pitch" type="revolute">
+    <origin xyz="-0.0303992 -0.0182778 -0.05420001" rpy="1.56253029 -1.57079272 -3.13333017" />
+    <parent link="shoulder" />
+    <child link="upper_arm" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.74532992" upper="1.74532992" velocity="9.99999945" effort="30" />
+    <dynamics friction="0" />
+    
+  </joint>
+  <joint name="Elbow" type="revolute">
+    <origin xyz="-0.11257003 -0.028 0" rpy="0.00000005 0.00000001 1.57079976" />
+    <parent link="upper_arm" />
+    <child link="lower_arm" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.74532992" upper="1.57079992" velocity="9.99999945" effort="30" />
+    <dynamics friction="0" />
+    
+  </joint>
+  <joint name="Wrist_Pitch" type="revolute">
+    <origin xyz="-0.13490003 0.00519998 -0.00000002" rpy="-0.00000008 -0.00000023 -1.57079975" />
+    <parent link="lower_arm" />
+    <child link="wrist" />
+    <axis xyz="0 0 1" />
+    <limit lower="-1.65805986" upper="1.65805986" velocity="9.99999945" effort="30" />
+    <dynamics friction="0" />
+    
+  </joint>
+  <joint name="Wrist_Roll" type="revolute">
+    <origin xyz="-0 -0.06110004 0.01810001" rpy="1.57080003 -0.0000006 3.14159021" />
+    <parent link="wrist" />
+    <child link="gripper" />
+    <axis xyz="0 0 1" />
+    <limit lower="-2.79253" upper="2.79253" velocity="9.99999945" effort="30" />
+    <dynamics friction="0" />
+    
+  </joint>
+  <joint name="Jaw" type="revolute">
+    <origin xyz="0.02020002 0.01880001 -0.02340001" rpy="1.57079978 -0.00000019 0.00000033" />
+    <parent link="gripper" />
+    <child link="jaw" />
+    <axis xyz="0 0 1" />
+    <limit lower="-0.17453299" upper="1.74532992" velocity="9.99999945" effort="30" />
+    <dynamics friction="0" />
+    
+  </joint>
+<link name="tcp" /><joint name="tcp_joint" type="fixed"><parent link="gripper" /><child link="tcp" /><origin xyz="-0.007 0.0 -0.102" rpy="0 0 0" /></joint></robot>

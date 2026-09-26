@@ -42,8 +42,8 @@ arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_lead
 
 Joint names, limits, the home pose, Jaw open/close targets, the TCP offset and asset paths are exported as
 plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, TCP_OFFSET, USD_PATH`.
-`HOME_JOINT_POS` is read-only; pass `dict(HOME_JOINT_POS)` to configs. `CUROBO_ROBOT_YML` exists only
-after running the cuRobo generator (see below).
+`HOME_JOINT_POS` is read-only; pass `dict(HOME_JOINT_POS)` to configs. `CUROBO_ROBOT_YML` is the shipped cuRobo
+config (see below).
 
 Then use like any Arena embodiment:
 
@@ -147,36 +147,53 @@ wrist-roll axis, in the `gripper` link frame), so rotations pivot about the tips
 
 ## cuRobo planning assets
 
-Generate a URDF (from the workshop USD) plus a cuRobo robot YAML (collision spheres,
-self-collision ignore matrix, locked Jaw, home pose) under the package's
-`embodiments/data/curobo/` (`src/arena_so101/...` in a checkout; `--output-dir` writes elsewhere):
+The package ships a cuRobo v0.8 robot config, `so101.yml`, and the URDF it refers to (exported from the workshop
+USD), under `embodiments/data/curobo/`. Load it with `robot_cfg()`, which turns the YAML's relative `urdf_path`
+into an absolute one (cuRobo would look for a relative path under its own assets):
 
-```bash
-# Inside the Isaac Sim / Arena env (needs CUDA + nvidia-curobo)
-python -m arena_so101.generate_curobo_config --headless
+```python
+from curobo.motion_planner import MotionPlanner, MotionPlannerCfg
+
+from arena_so101.curobo import robot_cfg
+
+planner = MotionPlanner(MotionPlannerCfg.create(robot=robot_cfg()))  # plans target `tcp`, the point between the jaw tips
 ```
-
-> TODO: Document manually authoring collision spheres.
-
-Outputs:
 
 | File | Purpose |
 |------|---------|
-| `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching sim joint names, plus a fixed `tcp` link at `TCP_OFFSET` |
-| `embodiments/data/curobo/meshes/` | Link meshes referenced by the URDF |
-| `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg` for `MotionPlanner`: plans target `tcp` (between the jaw tips); objects attach at `gripper` |
+| `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg`: collision spheres, self-collision ignore matrix, locked Jaw, home pose; plans target `tcp`, objects attach at `gripper` |
+| `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching the sim joint names, plus the fixed `tcp` link at `TCP_OFFSET` |
+| `embodiments/data/curobo/meshes/` | Link meshes (41 MB), not shipped: only the generator needs them |
 
-Rebuild the spheres from the URDF generated above, without Isaac Sim (still needs CUDA +
-nvidia-curobo, and `usd-core` to read the authored spheres):
+### Regenerating (maintainers)
+
+`generate_curobo_config` converts the USD to URDF (Isaac Sim), fits collision spheres (cuRobo, CUDA) and writes the
+YAML. It never writes into the installed package: the default output is `~/.cache/arena_so101/curobo`, and a
+checkout refreshes the shipped files with `--output-dir` (`meshes/` stays untracked):
 
 ```bash
-python -m arena_so101.generate_curobo_config --skip-usd-convert
+# Inside the Isaac Sim / Arena env (needs CUDA + nvidia-curobo)
+python -m arena_so101.generate_curobo_config --headless --output-dir src/arena_so101/embodiments/data/curobo
 ```
 
-It reads `urdf/` and `meshes/` from the output directory. For a URDF elsewhere, pass `--urdf <file>`
-and `--asset-path <mesh dir>`.
+Rebuild only the spheres from the URDF and meshes already in the output directory, without Isaac Sim (still needs
+CUDA + nvidia-curobo, and `usd-core` to read the authored spheres):
 
-Add `--visualize` to inspect fitted spheres in Viser.
+```bash
+python -m arena_so101.generate_curobo_config --skip-usd-convert --output-dir src/arena_so101/embodiments/data/curobo
+```
+
+For a URDF elsewhere, pass `--urdf <file>` and `--asset-path <mesh dir>`. Add `--visualize` to inspect the fitted
+spheres in Viser.
+
+### Authoring collision spheres
+
+The auto-fit covers the arm well but not the thin jaws, so `embodiments/data/curobo_sphere_colliders.usda` carries
+hand-placed spheres for the `gripper` and `jaw` links, and the generator uses them instead of the fit for those
+links. To edit them, open the USDA in Isaac Sim (it references the robot USD next to it), and under the link's prim
+(`over "jaw"`, `over "gripper"`) add or move `Sphere` prims whose name contains `curobo_collider_sphere`; the
+generator reads each sphere's `radius` and `xformOp:translate` (link-local, metres) with `pxr` alone. A link with
+at least one authored sphere keeps only the authored ones. Then regenerate as above (`--skip-usd-convert` is enough).
 
 ### Joint-space gamepad layout (`so101_abs_joint` + `so101_gamepad`)
 

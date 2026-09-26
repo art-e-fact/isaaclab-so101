@@ -28,7 +28,8 @@ where = ["src"]
 arena_so101 = [
     "embodiments/data/*.usd",
     "embodiments/data/*.usda",
-    "embodiments/data/curobo/**/*",
+    "embodiments/data/curobo/*.yml",
+    "embodiments/data/curobo/urdf/*.urdf",
 ]
 
 [tool.ruff]

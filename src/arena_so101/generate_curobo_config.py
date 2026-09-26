@@ -9,10 +9,18 @@ patched for this repo's joint names, home pose, and locked Jaw.
 Requires Isaac Sim (USD→URDF) and cuRobo v0.8+ (sphere fitting). CUDA is
 needed for the build step.
 
+The package ships the outputs (``so101.yml`` and ``urdf/``, see ``arena_so101.CUROBO_ROBOT_YML``), so this is a
+maintainer tool: refresh them with ``--output-dir src/arena_so101/embodiments/data/curobo`` in a checkout. Without
+``--output-dir`` it writes to the user cache (``~/.cache/arena_so101/curobo``), never into the installed package.
+The YAML stores ``urdf_path`` / ``asset_root_path`` relative to itself; ``arena_so101.curobo.robot_cfg`` resolves them.
+
 Examples::
 
-    # Full pipeline (headless Isaac Sim + cuRobo)
+    # Full pipeline (headless Isaac Sim + cuRobo) into the user cache
     python -m arena_so101.generate_curobo_config --headless
+
+    # Refresh the shipped assets (from a checkout; meshes/ stays untracked)
+    python -m arena_so101.generate_curobo_config --headless --output-dir src/arena_so101/embodiments/data/curobo
 
     # Rebuild YAML from an existing URDF (no Isaac Sim)
     python -m arena_so101.generate_curobo_config \\
@@ -30,6 +38,7 @@ Examples::
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -43,7 +52,7 @@ from arena_so101.constants import CUROBO_ROBOT_YML, HOME_JOINT_POS, JAW_CLOSE_RA
 
 _DEFAULT_USD = USD_PATH
 _DEFAULT_SPHERE_COLLIDERS = USD_PATH.parent / "curobo_sphere_colliders.usda"
-_DEFAULT_OUTPUT_DIR = CUROBO_ROBOT_YML.parent
+_DEFAULT_OUTPUT_DIR = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "arena_so101" / "curobo"
 
 # Prim-name substring marking authored cuRobo collision spheres in the USDA.
 _CUROBO_SPHERE_MARKER = "curobo_collider_sphere"
@@ -178,7 +187,13 @@ def load_authored_collision_spheres(
             "Reading authored collision spheres requires pxr (usd-core or Isaac Sim)."
         ) from exc
 
-    layer = Sdf.Layer.FindOrOpen(str(usda_path.resolve()))
+    try:
+        layer = Sdf.Layer.FindOrOpen(str(usda_path.resolve()))
+    except Exception as exc:  # Isaac Sim's pxr registers the .usda format only once Kit runs
+        raise RuntimeError(
+            f"pxr cannot read {usda_path.name} here: run the full pipeline (Isaac Sim loads the USD plugins) or "
+            "install usd-core for --skip-usd-convert"
+        ) from exc
     if layer is None:
         raise RuntimeError(f"Failed to open USDA layer: {usda_path}")
 
@@ -389,8 +404,11 @@ def patch_so101_robot_yaml(
         raise RuntimeError(f"Unexpected cuRobo YAML structure in {raw_yml}: keys={list(data)}")
 
     kin = data["robot_cfg"]["kinematics"]
-    kin["urdf_path"] = str(urdf_path.resolve())
-    kin["asset_root_path"] = str(asset_path.resolve())
+    # Relative to the YAML so the shipped copy relocates with the package (cuRobo itself would look for a relative
+    # path under its own assets directory: arena_so101.curobo.robot_cfg makes them absolute at load time).
+    yml_dir = output_yml.resolve().parent
+    kin["urdf_path"] = os.path.relpath(urdf_path.resolve(), yml_dir)
+    kin["asset_root_path"] = os.path.relpath(asset_path.resolve(), yml_dir)
     kin["tool_frames"] = [tool_frame]
     kin["lock_joints"] = {jaw_joint: JAW_OPEN_RAD}
 
@@ -675,7 +693,7 @@ def main(argv: list[str] | None = None) -> int:
             seed=args.seed,
             sphere_colliders_usd=sphere_colliders,
         )
-        print("\nDone. Point MotionPlanner / CuroboEmbodimentCfg at:")
+        print("\nDone. Load with arena_so101.curobo.robot_cfg(path) (its URDF path is relative to the YAML):")
         print(f"  robot YAML: {output_yml}")
         print(f"  URDF:       {urdf_path}")
         return 0
