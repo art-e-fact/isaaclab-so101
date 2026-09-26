@@ -386,8 +386,9 @@ def patch_so101_robot_yaml(
 ) -> Path:
     """Wrap builder output under ``robot_cfg`` and apply SO-101 planning defaults.
 
-    ``tool_frame`` (the ``tcp`` link) is what plans target; ``ee_link`` is the physical hand link that attached
-    objects and the self-collision ignore list hang off.
+    ``tool_frame`` (the ``tcp`` link) is what plans target and what attached objects hang off: cuRobo's
+    AttachmentManager resolves attachment offsets through ``tool_frames[0]``, so the attached link must coincide
+    with it. ``ee_link`` is the physical hand link the self-collision ignore list is keyed on.
     """
     import yaml
 
@@ -412,7 +413,7 @@ def patch_so101_robot_yaml(
     kin["tool_frames"] = [tool_frame]
     kin["lock_joints"] = {jaw_joint: JAW_OPEN_RAD}
 
-    # Grasp attach frame (same pattern as franka.yml) — parent is the physical EE link.
+    # Grasp attach frame: parented to the tool frame, which cuRobo assumes when it attaches objects.
     # Builder may serialize these fields as explicit nulls; setdefault won't replace None.
     extra_spheres = _ensure_mapping(kin, "extra_collision_spheres")
     extra_spheres["attached_object"] = 36
@@ -422,7 +423,7 @@ def patch_so101_robot_yaml(
         "joint_name": "attach_joint",
         "joint_type": "FIXED",
         "link_name": "attached_object",
-        "parent_link_name": ee_link,
+        "parent_link_name": tool_frame,
     }
     collision_links = _ensure_list(kin, "collision_link_names")
     if "attached_object" not in collision_links:
