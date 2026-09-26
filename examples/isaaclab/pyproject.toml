@@ -1,0 +1,56 @@
+[project]
+name = "arena-so101-isaaclab-examples"
+version = "0.0.0"
+description = "Run the SO-101 in plain Isaac Lab (no Arena), installed by uv alone."
+requires-python = "==3.12.*"
+dependencies = [
+    "arena-so101",
+    "isaaclab[isaacsim,all,video]==3.0.0rc1",  # video: `isaaclab play --video` records clips headless
+]
+
+# Isaac Lab's CLI (`isaaclab train/play`) imports the modules in this group, which register their tasks.
+[project.entry-points."isaaclab.tasks"]
+so101_reach = "so101_reach"
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["so101_reach"]
+
+# What the Isaac Lab wheel's own dependencies leave out. Update these with the isaaclab pin.
+[tool.uv]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+prerelease = "if-necessary-or-explicit"
+index-strategy = "first-index"
+# isaacsim-core pins packaging==26.0 and ovphysx wants <24. Isaac Lab's own uv-overrides.txt replaces both with this.
+override-dependencies = ["packaging>=20,<27"]
+constraint-dependencies = [
+    # Pinned by isaacsim-core. Only PyPI has this version, and a source applies only to a named requirement.
+    "mujoco-usd-converter==0.5.0",
+    # Pinned by isaacsim-core; a pre-release, which uv takes only when named.
+    "tinyobjloader==2.0.0rc13",
+    # Isaac Lab needs torch>=2.11. Its installer takes x86_64 builds from PyTorch's CUDA 12.8 index; PyPI's are CUDA 13.
+    "torch==2.11.0",
+    "torchvision==0.26.0",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.nvidia.com"
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+arena-so101 = { path = "../..", editable = true }
+mujoco-usd-converter = { index = "pypi" }
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }

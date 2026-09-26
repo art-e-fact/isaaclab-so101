@@ -1,20 +1,13 @@
-"""SO-101 follower embodiments for Isaac Lab Arena.
+"""SO-101 follower embodiments for Isaac Lab Arena, built on the Isaac Lab configs in ``arena_so101.assets``.
 
-USD and joint names follow the NVIDIA Sim-to-Real SO-101 workshop
-(``Rotation`` … ``Jaw``). Cameras are Python ``CameraCfg`` sensors:
-wrist RGB on ``Robot/gripper/gripper_cam``, plus a fixed env-frame
-``external_camera`` (over-shoulder / table view). Neither is baked into the USD.
+Cameras are Python ``CameraCfg`` sensors: wrist RGB on ``Robot/gripper/gripper_cam``, plus a fixed
+env-frame ``external_camera`` (over-shoulder / table view). Neither is baked into the USD.
 """
 
 from __future__ import annotations
 
-import math
-from pathlib import Path
-
-import torch
 import isaaclab.envs.mdp as mdp_isaac_lab
 import isaaclab.sim as sim_utils
-from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.controllers.differential_ik_cfg import DifferentialIKControllerCfg
 from isaaclab.envs.mdp.actions.actions_cfg import (
@@ -23,13 +16,12 @@ from isaaclab.envs.mdp.actions.actions_cfg import (
     JointPositionActionCfg,
     RelativeJointPositionActionCfg,
 )
-from isaaclab.managers import ActionTermCfg
+from isaaclab.managers import ActionTermCfg, EventTermCfg
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import CameraCfg, FrameTransformerCfg
-from isaaclab.utils import configclass
-from isaaclab.utils.math import quat_from_euler_xyz
+from isaaclab.utils.configclass import configclass
 
 from isaaclab_arena.assets.register import register_asset
 from isaaclab_arena.embodiments.common.arm_mode import ArmMode
@@ -37,117 +29,13 @@ from isaaclab_arena.embodiments.embodiment_base import EmbodimentBase
 from isaaclab_arena.utils.cameras import ArenaCameraCfg
 from isaaclab_arena.utils.pose import Pose
 
-from arena_so101.mapping import SIM_JOINT_NAMES
-
-_DATA_DIR = Path(__file__).parent / "data"
-_USD_PATH = str(_DATA_DIR / "SO-ARM101-USD.usd")
-
-# Arm joints only (Jaw is a separate binary gripper term for IK).
-_ARM_JOINT_NAMES = (
-    "Rotation",
-    "Pitch",
-    "Elbow",
-    "Wrist_Pitch",
-    "Wrist_Roll",
-)
-
-# USD Jaw limits from the NVIDIA workshop (degrees → radians).
-_JAW_OPEN_RAD = math.radians(100.0)
-_JAW_CLOSE_RAD = math.radians(-10.0)
-
-def _quat_xyzw_from_euler_deg(roll: float, pitch: float, yaw: float) -> tuple[float, float, float, float]:
-    """Intrinsic XYZ Euler (degrees) → quaternion (x, y, z, w)."""
-    quat = quat_from_euler_xyz(
-        torch.tensor(math.radians(roll)),
-        torch.tensor(math.radians(pitch)),
-        torch.tensor(math.radians(yaw)),
-    )
-    return tuple(quat.tolist())
-
-
-# 90° yaw about Z (x, y, z, w).
-_YAW_90 = _quat_xyzw_from_euler_deg(0.0, 0.0, 90.0)
-
-_SO101_CFG = ArticulationCfg(
-    spawn=sim_utils.UsdFileCfg(
-        usd_path=_USD_PATH,
-        activate_contact_sensors=False,
-        rigid_props=sim_utils.RigidBodyPropertiesCfg(
-            disable_gravity=False,
-            max_depenetration_velocity=5.0,
-        ),
-        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-            enabled_self_collisions=False,
-            solver_position_iteration_count=32,
-            solver_velocity_iteration_count=1,
-            fix_root_link=True,
-        ),
-    ),
-    init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.0),
-        rot=_YAW_90,
-        joint_pos={
-            "Rotation": -0.2736,
-            "Pitch": -0.6109,
-            "Elbow": -0.0745,
-            "Wrist_Pitch": 1.5148,
-            "Wrist_Roll": -1.6034,
-            "Jaw": -0.1465,
-        },
-    ),
-    # Gear-aware gains from the NVIDIA workshop.
-    actuators={
-        "rotation": ImplicitActuatorCfg(
-            joint_names_expr=["Rotation"], effort_limit_sim=30, stiffness=55, damping=0.7
-        ),
-        "pitch": ImplicitActuatorCfg(
-            joint_names_expr=["Pitch"], effort_limit_sim=30, stiffness=30, damping=0.8
-        ),
-        "elbow": ImplicitActuatorCfg(
-            joint_names_expr=["Elbow"], effort_limit_sim=30, stiffness=25, damping=0.7
-        ),
-        "wrist_pitch": ImplicitActuatorCfg(
-            joint_names_expr=["Wrist_Pitch"], effort_limit_sim=30, stiffness=12, damping=0.5
-        ),
-        "wrist_roll": ImplicitActuatorCfg(
-            joint_names_expr=["Wrist_Roll"], effort_limit_sim=30, stiffness=7, damping=0.5
-        ),
-        "gripper": ImplicitActuatorCfg(
-            joint_names_expr=["Jaw"], effort_limit_sim=30, stiffness=4, damping=0.3
-        ),
-    },
-)
-
-# High-PD / gravity-off copy for differential IK (same idea as FRANKA_PANDA_HIGH_PD_CFG).
-# Diff-IK assumes joint targets are tracked tightly; gravity + soft PD would make EE
-# lag the SE(3) command. Gravity off removes that disturbance; high PD tracks targets.
-_SO101_IK_CFG = _SO101_CFG.copy()
-_SO101_IK_CFG.spawn.rigid_props.disable_gravity = True
-_SO101_IK_CFG.actuators = {
-    "rotation": ImplicitActuatorCfg(
-        joint_names_expr=["Rotation"], effort_limit_sim=30, stiffness=400, damping=80
-    ),
-    "pitch": ImplicitActuatorCfg(
-        joint_names_expr=["Pitch"], effort_limit_sim=30, stiffness=400, damping=80
-    ),
-    "elbow": ImplicitActuatorCfg(
-        joint_names_expr=["Elbow"], effort_limit_sim=30, stiffness=400, damping=80
-    ),
-    "wrist_pitch": ImplicitActuatorCfg(
-        joint_names_expr=["Wrist_Pitch"], effort_limit_sim=30, stiffness=200, damping=40
-    ),
-    "wrist_roll": ImplicitActuatorCfg(
-        joint_names_expr=["Wrist_Roll"], effort_limit_sim=30, stiffness=200, damping=40
-    ),
-    "gripper": ImplicitActuatorCfg(
-        joint_names_expr=["Jaw"], effort_limit_sim=30, stiffness=20, damping=2
-    ),
-}
+from arena_so101.assets import SO101_CFG, SO101_HIGH_PD_CFG, SO101_WRIST_CAMERA_CFG
+from arena_so101.constants import ARM_JOINT_NAMES, JAW_CLOSE_RAD, JAW_OPEN_RAD, SIM_JOINT_NAMES
 
 
 @configclass
 class SO101SceneCfg:
-    robot: ArticulationCfg = _SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    robot: ArticulationCfg = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
     # EE frame for reach/place rewards (same target as workshop).
     ee_frame: FrameTransformerCfg = FrameTransformerCfg(
@@ -188,7 +76,7 @@ class SO101IKActionsCfg:
 
     arm_action: ActionTermCfg = DifferentialInverseKinematicsActionCfg(
         asset_name="robot",
-        joint_names=list(_ARM_JOINT_NAMES),
+        joint_names=list(ARM_JOINT_NAMES),
         body_name="gripper",
         controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=True, ik_method="dls"),
         scale=0.5,
@@ -198,8 +86,8 @@ class SO101IKActionsCfg:
     gripper_action: ActionTermCfg = BinaryJointPositionActionCfg(
         asset_name="robot",
         joint_names=["Jaw"],
-        open_command_expr={"Jaw": _JAW_OPEN_RAD},
-        close_command_expr={"Jaw": _JAW_CLOSE_RAD},
+        open_command_expr={"Jaw": JAW_OPEN_RAD},
+        close_command_expr={"Jaw": JAW_CLOSE_RAD},
     )
 
 
@@ -219,26 +107,23 @@ class SO101ObservationsCfg:
 
 
 @configclass
-class SO101CameraCfg(ArenaCameraCfg):
-    # Workshop ego cam: spawn at gripper mount, offset into the real lens frame.
-    camera_ego: CameraCfg = CameraCfg(
-        prim_path="{ENV_REGEX_NS}/Robot/gripper/gripper_cam",
-        update_period=0.0,
-        height=480,
-        width=640,
-        data_types=["rgb"],
-        spawn=sim_utils.PinholeCameraCfg(
-            projection_type="pinhole",
-            f_stop=100.0,
-            focal_length=13.5,
-            focus_distance=0.05,
-        ),
-        offset=CameraCfg.OffsetCfg(
-            pos=(-0.005, 0.06, -0.062),
-            rot=_quat_xyzw_from_euler_deg(-45.0, 0.0, 0.0),
-            convention="opengl",
-        ),
+class SO101EventCfg:
+    # Isaac Lab's scene reset leaves joint state alone, so without this the arm starts each
+    # episode where the last one ended. Resets to init_state.joint_pos, clamped to the soft limits.
+    reset_robot_joints: EventTermCfg = EventTermCfg(
+        func=mdp_isaac_lab.reset_joints_by_offset,
+        mode="reset",
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "position_range": (0.0, 0.0),  # set from reset_joint_noise
+            "velocity_range": (0.0, 0.0),
+        },
     )
+
+
+@configclass
+class SO101CameraCfg(ArenaCameraCfg):
+    camera_ego: CameraCfg = SO101_WRIST_CAMERA_CFG
 
     # Fixed third-person / over-shoulder view (env frame). Pose is a sensible
     # default; task envs (e.g. shape sorting) may override the offset.
@@ -266,7 +151,11 @@ class SO101CameraCfg(ArenaCameraCfg):
 
 
 class SO101EmbodimentBase(EmbodimentBase):
-    """Shared SO-101 follower setup (workshop USD)."""
+    """Shared SO-101 follower setup (workshop USD).
+
+    Every episode reset returns the arm to ``init_state.joint_pos`` (the home pose unless changed
+    with ``set_joint_initial_pos``), plus uniform noise of ``±reset_joint_noise`` rad on each joint.
+    """
 
     default_arm_mode = ArmMode.SINGLE_ARM
 
@@ -276,9 +165,12 @@ class SO101EmbodimentBase(EmbodimentBase):
         initial_pose: Pose | None = None,
         concatenate_observation_terms: bool = False,
         arm_mode: ArmMode | None = None,
+        reset_joint_noise: float = 0.0,
     ):
         super().__init__(enable_cameras, initial_pose, concatenate_observation_terms, arm_mode)
         self.scene_config = SO101SceneCfg()
+        self.event_config = SO101EventCfg()
+        self.event_config.reset_robot_joints.params["position_range"] = (-reset_joint_noise, reset_joint_noise)
         self.camera_config = SO101CameraCfg()
         # Isaac Lab 4.6+: CameraCfg already includes tiled rendering; avoid
         # Arena's conversion back to deprecated TiledCameraCfg.
@@ -289,7 +181,8 @@ class SO101EmbodimentBase(EmbodimentBase):
         self.action_config = None
 
     def get_ee_frame_name(self, arm_mode: ArmMode) -> str:
-        return "gripper"
+        # Scene entity name: Arena tasks look it up with SceneEntityCfg / env.scene[...].
+        return "ee_frame"
 
     def get_command_body_name(self) -> str:
         return "gripper"
@@ -329,7 +222,7 @@ class SO101IKEmbodiment(SO101EmbodimentBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.scene_config.robot = _SO101_IK_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene_config.robot = SO101_HIGH_PD_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.action_config = SO101IKActionsCfg()
 
     def get_command_body_name(self) -> str:

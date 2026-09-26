@@ -144,6 +144,13 @@ def test_close_discards_uncommitted_episode(tmp_path, fake_lerobot):
     assert recorder.dataset.finalized
 
 
+def test_missing_lerobot_names_the_extra(tmp_path, monkeypatch):
+    monkeypatch.setitem(sys.modules, "lerobot.datasets", None)
+
+    with pytest.raises(ImportError, match="lerobot"):
+        SO101LeRobotRecorder(root=tmp_path / "dataset", repo_id="local/test", fps=50)
+
+
 def test_existing_output_requires_explicit_mode(tmp_path, fake_lerobot):
     root = tmp_path / "dataset"
     root.mkdir()
@@ -154,7 +161,7 @@ def test_existing_output_requires_explicit_mode(tmp_path, fake_lerobot):
 
 def test_writes_reopenable_lerobot_dataset(tmp_path, monkeypatch):
     monkeypatch.setenv("HF_DATASETS_CACHE", str(tmp_path / "hf_cache"))
-    from lerobot.datasets import LeRobotDataset
+    LeRobotDataset = pytest.importorskip("lerobot.datasets").LeRobotDataset
 
     root = tmp_path / "dataset"
     image_shape = (64, 64, 3)

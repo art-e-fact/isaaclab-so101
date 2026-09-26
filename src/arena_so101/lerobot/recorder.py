@@ -63,7 +63,13 @@ class SO101LeRobotRecorder:
         if resume and overwrite:
             raise ValueError("resume and overwrite are mutually exclusive")
 
-        from lerobot.datasets import LeRobotDataset, VideoEncodingManager
+        try:
+            from lerobot.datasets import LeRobotDataset, VideoEncodingManager
+        except ImportError as exc:
+            raise ImportError(
+                "SO101LeRobotRecorder needs lerobot[dataset]>=0.6.1,<0.7 (the arena-so101 `lerobot` extra; "
+                "the `leader` extra alone does not include it)."
+            ) from exc
 
         self.root = Path(root).expanduser().resolve()
         self.features = so101_dataset_features(image_shape)

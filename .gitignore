@@ -1,3 +1,10 @@
 # Python
 __pycache__/
 *.egg-info
+.venv/
+# Isaac Lab training runs (isaaclab train)
+logs/
+# Local notes (issues.local/, etc.)
+*.local/
+# examples/arena/setup.sh clones Arena here
+examples/arena/IsaacLab-Arena/

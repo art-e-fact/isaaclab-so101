@@ -8,13 +8,18 @@ version = "0.1.0"
 description = "SO-101 embodiment and leader teleop for Isaac Lab Arena"
 license = "MIT OR Apache-2.0"
 license-files = ["LICENSE-*"]
-requires-python = ">=3.10"
-dependencies = [
-    "lerobot[dataset,training]",
-]
+# Isaac Lab Arena and lerobot 0.6 both require Python 3.12.
+requires-python = ">=3.12"
+# Isaac Sim, Isaac Lab and Arena (and their torch/numpy) come from the environment.
+dependencies = []
 
 [project.optional-dependencies]
-leader = ["lerobot[feetech]"]
+# LeRobot dataset recorder (arena_so101.lerobot).
+lerobot = ["lerobot[dataset]>=0.6.1,<0.7"]
+# Physical SO-101 leader arm teleop (so101_leader device).
+leader = ["lerobot[feetech]>=0.6.1,<0.7"]
+# Lint and tests. The tests stub Isaac Sim / Lab / Arena; torch and numpy are the real ones.
+dev = ["pytest", "ruff", "torch", "numpy"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -26,3 +31,13 @@ arena_so101 = [
     "embodiments/data/curobo/**/*",
     "lerobot/*",
 ]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# Pinned: ruff's default rule set grows between releases, and CI runs the latest ruff.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
