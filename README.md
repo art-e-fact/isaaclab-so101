@@ -165,6 +165,14 @@ planner = MotionPlanner(MotionPlannerCfg.create(robot=robot_cfg()))  # plans tar
 | `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching the sim joint names, plus the fixed `tcp` link at `TCP_OFFSET` |
 | `embodiments/data/curobo/meshes/` | Link meshes (41 MB), not shipped: only the generator needs them |
 
+**Supported cuRobo: 0.8.** `so101.yml` and `robot_cfg()` target the 0.8 API (`curobo.motion_planner`), which is
+what the shape-sorting demo plans with. Isaac Lab's `isaaclab_mimic` planner and Arena's `isaaclab_arena_curobo`
+placement-reachability check still pin cuRobo 0.7.7 (`ebb7170`): 0.8.0 removed every module they import, and
+0.7.7's loader rejects this YAML (`tool_frames` instead of `ee_link`, `format_version`), so no environment can hold
+both. SO-101 therefore registers no `CuroboEmbodimentCfg`, and Arena's `ik_reachable` placement check is unsupported
+until Arena moves to 0.8. The YAML's `arena_so101:` block already carries what that registration needs
+(`ee_link_name`, the gripper joint with its open and closed positions, `hand_link_names`).
+
 ### Regenerating (maintainers)
 
 `generate_curobo_config` converts the USD to URDF (Isaac Sim), fits collision spheres (cuRobo, CUDA) and writes the

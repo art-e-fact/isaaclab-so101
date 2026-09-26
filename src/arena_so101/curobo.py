@@ -1,4 +1,4 @@
-"""Load the shipped cuRobo robot config (``so101.yml``) with its file paths resolved."""
+"""Load the shipped cuRobo robot config (``so101.yml``, cuRobo 0.8 schema) with its file paths resolved."""
 
 from __future__ import annotations
 
