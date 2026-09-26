@@ -29,7 +29,6 @@ arena_so101 = [
     "embodiments/data/*.usd",
     "embodiments/data/*.usda",
     "embodiments/data/curobo/**/*",
-    "lerobot/*",
 ]
 
 [tool.ruff]
