@@ -40,7 +40,7 @@ def test_patch_plans_for_the_tcp_and_attaches_at_the_ee_link(tmp_path):
     data = yaml.safe_load(out.read_text())
     kin = data["robot_cfg"]["kinematics"]
     assert kin["tool_frames"] == ["tcp"]
-    assert kin["extra_links"]["attached_object"]["parent_link_name"] == "gripper"
+    assert kin["extra_links"]["attached_object"]["parent_link_name"] == "tcp"  # cuRobo attaches through tool_frames[0]
     assert "attached_object" in kin["self_collision_ignore"]["gripper"]
     assert data["arena_so101"]["ee_link_name"] == "tcp"
     assert data["arena_so101"]["hand_link_names"] == ["gripper"]

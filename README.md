@@ -161,7 +161,7 @@ planner = MotionPlanner(MotionPlannerCfg.create(robot=robot_cfg()))  # plans tar
 
 | File | Purpose |
 |------|---------|
-| `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg`: collision spheres, self-collision ignore matrix, locked Jaw, home pose; plans target `tcp`, objects attach at `gripper` |
+| `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg`: collision spheres, self-collision ignore matrix, locked Jaw, home pose; plans target `tcp`, objects attach at `tcp` |
 | `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching the sim joint names, plus the fixed `tcp` link at `TCP_OFFSET` |
 | `embodiments/data/curobo/meshes/` | Link meshes (41 MB), not shipped: only the generator needs them |
 
