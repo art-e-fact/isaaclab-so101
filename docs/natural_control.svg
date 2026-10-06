@@ -6,7 +6,7 @@
   .arm{stroke:#6b7280;stroke-width:5;fill:none;stroke-linecap:round;stroke-linejoin:round}
   .grip{stroke:#2b7de9;stroke-width:5;fill:none;stroke-linecap:round}.gripf{stroke:#2b7de9;stroke-width:3;fill:none;stroke-linecap:round;opacity:.35}
   .dot{fill:#2b7de9}.pan{fill:#3c3c43}.base{fill:#e5e7eb;stroke:#9ca3af;stroke-width:1.2}
-  .arr{stroke:#2b7de9;stroke-width:2;fill:none}.knob{stroke:#e0812e;stroke-width:2;fill:none}.k{fill:#e0812e;font-weight:600}
+  .arr{stroke:#2b7de9;stroke-width:2;fill:none}.knob{stroke:#e0812e;stroke-width:2;fill:none}.kf{fill:#e0812e}.k{fill:#e0812e;font-weight:600}
   .b{fill:#2b7de9;font-weight:600}
   @media (prefers-color-scheme: dark){
     .bg{fill:#0d1117}.t,.h{fill:#e5e7eb}.m{fill:#9ca3af}.pan{fill:#e5e7eb}.base{fill:#374151;stroke:#6b7280}
@@ -15,7 +15,6 @@
 </style>
 <defs>
   <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2b7de9"/></marker>
-  <marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e0812e"/></marker>
   <marker id="ahk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e0812e"/></marker>
 </defs>
 <rect class="bg" width="880" height="350"/>
@@ -57,8 +56,8 @@
 <line class="grip" x1="730" y1="170" x2="774.3" y2="226.7"/>
 <line class="grip" x1="767.0" y1="210.3" x2="774.3" y2="226.7"/>
 <line class="grip" x1="760.1" y1="215.7" x2="774.3" y2="226.7"/>
-<g transform="translate(754.4,201.2) rotate(-38)"><path class="knob" style="stroke-width:2.5" d="M-18.8,-2.4 A20,7 0 1 0 18.8,-2.4" marker-end="url(#ahr)"/></g>
-<text class="k" x="764" y="176">roll</text>
+<g transform="translate(754.4,201.2) rotate(-38)"><path class="knob" style="stroke-width:2.5" d="M-18.8,-2.4 A20,7 0 1 0 12.6,5.4"/><path class="kf" d="M18.3,-2.8 L16.3,8.0 L8.9,2.9 z"/></g>
+<text class="k" x="763" y="176">roll</text>
 <path class="knob" d="M736.1,257.8 A88,88 0 0 0 779.2,243.0" marker-end="url(#ahk)"/>
 <text class="k" x="748" y="278">tilt</text>
 <text class="m" x="706" y="278">0</text>
