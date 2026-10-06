@@ -38,7 +38,7 @@ The first launch compiles RTX shaders, which can take several minutes with no te
 
 | `--embodiment` | `--teleop_device` |
 |---|---|
-| `so101_abs_ik` | `so101_gamepad` (the [natural layout](../../README.md#natural-gamepad-layout-so101_abs_ik--so101_gamepad): sticks move the fingertips) |
+| `so101_abs_ik` | `so101_gamepad` (the [natural layout](../../README.md#natural-gamepad-layout-so101_abs_ik--so101_gamepad): pan, reach, lift, lean, spin) |
 | `so101_ik` | `keyboard`, `spacemouse`, `so101_gamepad` (Isaac Lab's SE(3) layout) |
 | `so101_abs_joint` | `so101_leader` (a physical leader arm; add `--leader_port /dev/ttyACM0`) |
 

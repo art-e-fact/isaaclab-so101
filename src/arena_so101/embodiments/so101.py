@@ -49,6 +49,7 @@ from arena_so101.constants import (
     SIM_JOINT_NAMES,
     TCP_OFFSET,
 )
+from arena_so101.gamepad_device import reseed_natural_gamepads
 
 # The arm faces +X only because SO101_CFG.init_state yaws its base 90° (see assets.py). Arena writes the
 # Pose it is given straight into init_state and the root-pose reset event, so a plain Pose() would drop
@@ -162,6 +163,9 @@ class SO101EventCfg:
             "velocity_range": (0.0, 0.0),
         },
     )
+    # The natural gamepad holds an absolute TCP target; when the env resets itself (task success) the target
+    # has to follow, or the arm snaps home and lunges back to it. A no-op without a live gamepad.
+    reseed_gamepad_target: EventTermCfg = EventTermCfg(func=reseed_natural_gamepads, mode="reset")
 
 
 @configclass

@@ -19,7 +19,7 @@
 </defs>
 <rect class="bg" width="880" height="350"/>
 <text class="h" x="24" y="30">From above</text>
-<text class="m" x="24" y="48">x, y say where the fingertips are. The heading is not a knob:</text>
+<text class="m" x="24" y="48">pan and reach say where the fingertips are. The heading is not a knob:</text>
 <text class="m" x="24" y="64">the gripper always faces out along the arm.</text>
 <rect class="base" x="92" y="179" width="52" height="52" rx="8"/>
 <circle class="pan" cx="118" cy="205" r="3.5"/>
@@ -37,8 +37,8 @@
 <text class="b" x="327" y="265">faces out along the arm</text>
 <text class="m" transform="translate(192.2,165.6) rotate(-28)" y="-6" text-anchor="middle">arm plane</text>
 <path class="knob" d="M300.4,250.5 A188,188 0 0 0 294.7,140.7" marker-end="url(#ahk)"/>
-<text class="k" x="326" y="193">move it sideways,</text>
-<text class="k" x="326" y="210">it turns by itself</text>
+<text class="k" x="326" y="193">pan the arm,</text>
+<text class="k" x="326" y="210">the gripper turns by itself</text>
 <text class="m" x="158" y="300">forward →</text>
 <text class="h" x="510" y="30">In the arm plane</text>
 <text class="m" x="510" y="48">z lifts the fingertips. tilt leans the gripper along the arm.</text>
@@ -64,5 +64,5 @@
 <path class="arr" d="M820,262 L820,122" marker-end="url(#ah)" marker-start="url(#ah)"/>
 <text class="b" x="830" y="196">z</text>
 <text class="m" x="580" y="304">fingertips leaning away from the base: tilt &lt; 0</text>
-<text class="m" x="24" y="340">Orientation = face out along the arm (decided by x, y), then lean by tilt, then spin by roll: a ZYZ Euler sequence.</text>
+<text class="m" x="24" y="340">Orientation = face out along the arm (decided by the pan), then lean by tilt, then spin by roll: a ZYZ Euler sequence.</text>
 </svg>

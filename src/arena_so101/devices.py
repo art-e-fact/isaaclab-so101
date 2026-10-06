@@ -46,7 +46,7 @@ class SO101GamepadCfg(TeleopDeviceBase):
         self.pos_sensitivity = pos_sensitivity
         self.rot_sensitivity = rot_sensitivity
         self.delta_scale = delta_scale  # rad/step: the natural layout's tilt/roll
-        self.pos_delta_scale = pos_delta_scale  # m/step: the natural layout's x/y/z
+        self.pos_delta_scale = pos_delta_scale  # m/step: the natural layout's pan, reach and height
 
     def get_device_cfg(
         self, pipeline_builder: Callable | None = None, embodiment: object | None = None
