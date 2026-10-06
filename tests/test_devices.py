@@ -3,28 +3,17 @@ from __future__ import annotations
 import sys
 from types import SimpleNamespace
 
-from arena_so101 import HOME_JOINT_POS, SIM_JOINT_NAMES
+import pytest
 
 
-def _embodiment(joint_pos: dict[str, float], name: str = "so101_abs_joint"):
-    init_state = SimpleNamespace(joint_pos=joint_pos)
-    return SimpleNamespace(name=name, scene_config=SimpleNamespace(robot=SimpleNamespace(init_state=init_state)))
+def test_natural_gamepad_pairs_with_the_absolute_ik_embodiment(isaac):
+    gamepad = isaac.devices.SO101GamepadCfg(pos_delta_scale=0.002)
+    cfg = gamepad.get_device_cfg(embodiment=SimpleNamespace(name="so101_abs_ik"))
 
-
-def test_joint_gamepad_resets_to_embodiment_init_pose(isaac):
-    joint_pos = dict(HOME_JOINT_POS)
-    joint_pos["Jaw"] = 0.5  # what EmbodimentBase.set_joint_initial_pos does
-
-    cfg = isaac.devices.SO101GamepadCfg().get_device_cfg(embodiment=_embodiment(joint_pos))
-
-    assert cfg.default_joint_pos == tuple(joint_pos[name] for name in SIM_JOINT_NAMES)
-
-
-def test_joint_gamepad_resolves_regex_keys_like_isaac_lab(isaac):
-    cfg = isaac.devices.SO101GamepadCfg().get_device_cfg(embodiment=_embodiment({"Wrist_.*": 0.25, "Jaw": 0.5}))
-
-    expected = dict(HOME_JOINT_POS, Wrist_Pitch=0.25, Wrist_Roll=0.25, Jaw=0.5)
-    assert cfg.default_joint_pos == tuple(expected[name] for name in SIM_JOINT_NAMES)
+    assert isinstance(cfg, isaac.gamepad_device.SO101NaturalGamepadCfg)
+    assert cfg.pos_delta_scale == 0.002 and cfg.delta_scale == 0.03
+    with pytest.raises(ValueError, match="no layout"):  # the joint-space layout is gone
+        gamepad.get_device_cfg(embodiment=SimpleNamespace(name="so101_abs_joint"))
 
 
 def test_isaac_fixture_restores_modules(isaac):

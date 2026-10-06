@@ -4,8 +4,8 @@ For each embodiment, builds so101_table (Arena's lift task, whose reward reads t
 steps it, moves the arm away, resets, and checks the arm is back in its initial pose. Then checks
 that placing the arm, explicitly and with ``On(table)``, keeps it facing +X, that the cameras
 render and the external camera follows the base, the Franka-parity extras (EE observations,
-the Arena gripper, ``set_joint_initial_pos``), and that the LeRobot recorder takes the env's own frames and
-``joint_targets`` for every embodiment.
+the Arena gripper, ``set_joint_initial_pos``), that ``so101_abs_ik`` follows the natural gamepad's absolute pose
+commands, and that the LeRobot recorder takes the env's own frames and ``joint_targets`` for every embodiment.
 
     source ./setup.sh && python smoke_test.py
 
@@ -205,6 +205,54 @@ def check_parity(args) -> None:
         env.close()
 
 
+def check_natural(args) -> None:
+    """so101_abs_ik takes the natural gamepad's command, an absolute TCP pose in the base frame, and the arm goes there."""
+    import math
+
+    import torch
+    from isaaclab.utils.math import quat_error_magnitude
+
+    from arena_so101 import JAW_CLOSE_RAD
+    from arena_so101.ee_pose import HOME_NATURAL_POSE, natural_ee_quat_xyzw
+    from arena_so101.gamepad_device import SO101NaturalGamepadCfg
+    from so101_table import SO101TableEnvironmentCfg
+
+    env, _ = build(args, SO101TableEnvironmentCfg(embodiment="so101_abs_ik", teleop_device="so101_gamepad"))
+    try:
+        devices = env.unwrapped.cfg.teleop_devices.devices
+        assert isinstance(devices["so101_gamepad"], SO101NaturalGamepadCfg), devices
+        assert env.action_space.shape[-1] == 8, env.action_space  # pos (3) + quat (4) + jaw (1)
+        device = env.unwrapped.device
+
+        def command(x, y, z, tilt, roll, jaw=1.0):  # what SO101NaturalGamepad.advance emits
+            return torch.tensor([[x, y, z, *natural_ee_quat_xyzw(x, y, tilt, roll), jaw]], device=device)
+
+        def tcp_error(obs, x, y, z, tilt, roll):
+            pos, quat = obs["policy"]["eef_pos"][0], obs["policy"]["eef_quat"][0]
+            target = quat.new_tensor(natural_ee_quat_xyzw(x, y, tilt, roll))
+            return (pos - pos.new_tensor((x, y, z))).norm().item(), quat_error_magnitude(quat[None], target[None])[0].item()
+
+        obs, _ = env.reset()
+        # Holding the device's reset target keeps the arm at home: HOME_NATURAL_POSE is the sim's home TCP.
+        for _ in range(STEPS):
+            obs, *_ = env.step(command(*HOME_NATURAL_POSE))
+        pos_err, rot_err = tcp_error(obs, *HOME_NATURAL_POSE)
+        assert pos_err < 0.01 and rot_err < math.radians(3), f"home: {pos_err:.3f} m, {math.degrees(rot_err):.1f} deg off"
+        # A target 6 cm forward (-Y), 3 cm down, leaning further and rolled, jaw closed: the arm reaches it.
+        x, y, z, _, _ = HOME_NATURAL_POSE
+        target = (x, y - 0.06, z - 0.03, -1.0, -1.0)
+        for _ in range(3 * STEPS):
+            obs, *_ = env.step(command(*target, jaw=-1.0))
+        pos_err, rot_err = tcp_error(obs, *target)
+        assert pos_err < 0.01 and rot_err < math.radians(3), f"target: {pos_err:.3f} m, {math.degrees(rot_err):.1f} deg off"
+        robot = env.unwrapped.scene["robot"]
+        jaw = robot.data.joint_pos.torch[0, robot.find_joints("Jaw")[0][0]].item()
+        assert abs(jaw - JAW_CLOSE_RAD) < 0.05, f"jaw at {jaw:.3f} rad, not closed by -1"
+        print(f"[smoke_test] natural: OK (abs_ik holds home, reaches a tilted target: {pos_err * 1e3:.1f} mm, {math.degrees(rot_err):.1f} deg off)")
+    finally:
+        env.close()
+
+
 def check_recorder(args) -> None:
     """The recorder takes the env's own frames for any camera set, with joint_targets as the action."""
     import contextlib
@@ -264,7 +312,7 @@ def main() -> None:
         for embodiment_name in EMBODIMENTS:
             check(embodiment_name, args)
             teardown_simulation_app(make_new_stage=True)
-        for check_fn in (check_placement, check_cameras, check_parity, check_recorder):
+        for check_fn in (check_placement, check_cameras, check_parity, check_natural, check_recorder):
             check_fn(args)
             teardown_simulation_app(make_new_stage=True)
         print("[smoke_test] all checks OK")

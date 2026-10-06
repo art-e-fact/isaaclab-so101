@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-EMBODIMENTS = ("SO101AbsJointEmbodiment", "SO101RelJointEmbodiment", "SO101IKEmbodiment")
+EMBODIMENTS = ("SO101AbsJointEmbodiment", "SO101RelJointEmbodiment", "SO101IKEmbodiment", "SO101AbsIKEmbodiment")
 
 
 @pytest.mark.parametrize("cls_name", EMBODIMENTS)
@@ -49,3 +49,13 @@ def test_constructor_forwards_arena_kwargs_and_the_joint_pose(isaac, cls_name):
     assert embodiment.base_kwargs == {"spawn_cfg_addon": {"robot": {}}}
     assert embodiment.joint_initial_pos == {"Jaw": 0.5}
     assert isinstance(embodiment.gripper, isaac.so101.SO101Gripper)
+
+
+def test_absolute_ik_commands_a_pose_and_leaves_the_relative_one_alone(isaac):
+    absolute, relative = isaac.so101.SO101AbsIKEmbodiment(), isaac.so101.SO101IKEmbodiment()
+    assert absolute.name == "so101_abs_ik"
+    assert absolute.action_config.arm_action.controller.use_relative_mode is False
+    assert absolute.action_config.arm_action.scale == 1.0  # it would scale the quaternion too
+    # The stubs leave Isaac Lab's defaults as mocks; what matters is that the override stayed on its own instance.
+    assert relative.action_config.arm_action.controller.use_relative_mode is not False
+    assert relative.action_config.arm_action.scale != 1.0

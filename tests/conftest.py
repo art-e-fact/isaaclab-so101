@@ -15,7 +15,7 @@ import pytest
 _ISAAC_DEPENDENT = (
     "assets",
     "cameras",
-    "joint_gamepad_device",
+    "gamepad_device",
     "leader_device",
     "devices",
     "embodiments",
@@ -132,7 +132,18 @@ def isaac(monkeypatch):
         "isaaclab_arena.embodiments.common.arm_mode": {},
         "isaaclab_arena.utils.pose": {},
     }
-    stubs: dict[str, ModuleType | MagicMock] = {"carb": MagicMock(), "omni": MagicMock()}
+    # carb.input is unavailable while the arena_so101 modules import, as in Isaac Sim before Kit loads its input
+    # plugin: a device must look GamepadInput up when constructed, not at import.
+    carb = _module("carb")
+    carb_loaded = False
+
+    def _carb_getattr(attr: str, _plain=carb.__getattr__):
+        if attr == "input" and not carb_loaded:
+            raise AttributeError("carb.input is not loaded yet (Kit's input plugin comes up after import)")
+        return _plain(attr)
+
+    carb.__getattr__ = _carb_getattr
+    stubs: dict[str, ModuleType | MagicMock] = {"carb": carb, "omni": MagicMock()}
     for name, attrs in real_attrs.items():
         parts = name.split(".")
         for i in range(1, len(parts) + 1):  # the module and its parent packages
@@ -155,6 +166,6 @@ def isaac(monkeypatch):
             monkeypatch.setattr(parent, attr, None, raising=False)
             delattr(parent, attr)
 
-    return SimpleNamespace(
-        **{short.rpartition(".")[2]: importlib.import_module(f"arena_so101.{short}") for short in _ISAAC_DEPENDENT}
-    )
+    modules = {short.rpartition(".")[2]: importlib.import_module(f"arena_so101.{short}") for short in _ISAAC_DEPENDENT}
+    carb_loaded = True  # noqa: F841  (read by _carb_getattr)
+    return SimpleNamespace(**modules)

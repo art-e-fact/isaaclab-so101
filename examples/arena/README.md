@@ -38,8 +38,9 @@ The first launch compiles RTX shaders, which can take several minutes with no te
 
 | `--embodiment` | `--teleop_device` |
 |---|---|
-| `so101_ik` | `keyboard`, `spacemouse`, `so101_gamepad` |
-| `so101_abs_joint` | `so101_gamepad`, `so101_leader` (a physical leader arm; add `--leader_port /dev/ttyACM0`) |
+| `so101_abs_ik` | `so101_gamepad` (the [natural layout](../../README.md#natural-gamepad-layout-so101_abs_ik--so101_gamepad): sticks move the fingertips) |
+| `so101_ik` | `keyboard`, `spacemouse`, `so101_gamepad` (Isaac Lab's SE(3) layout) |
+| `so101_abs_joint` | `so101_leader` (a physical leader arm; add `--leader_port /dev/ttyACM0`) |
 
 `--teleop_device` is read twice: Arena's callback builds that device for the chosen embodiment into the environment
 config, and Isaac Lab's script then picks it up from there by the same name.
@@ -52,7 +53,7 @@ Same flags, with Isaac Lab's recorder and where to write the HDF5 file:
 python IsaacLab-Arena/submodules/IsaacLab/scripts/tools/record_demos.py --viz kit \
   --external_callback isaaclab_arena.environments.isaaclab_interop.environment_registration_callback \
   --task so101_table --external_environment_class_path so101_table:SO101TableEnvironment \
-  --embodiment so101_abs_joint --teleop_device so101_gamepad \
+  --embodiment so101_abs_ik --teleop_device so101_gamepad \
   --dataset_file datasets/so101_lift.hdf5 --num_demos 5
 ```
 
