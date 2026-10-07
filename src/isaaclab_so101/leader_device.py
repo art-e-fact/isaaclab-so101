@@ -14,7 +14,7 @@ import omni
 from isaaclab.devices.device_base import DeviceBase, DeviceCfg
 from isaaclab.utils.configclass import configclass
 
-from arena_so101.mapping import leader_dict_to_sim_radians
+from isaaclab_so101.mapping import leader_dict_to_sim_radians
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ class SO101LeaderDevice(DeviceBase):
             from lerobot.teleoperators.so_leader import SO101Leader, SO101LeaderConfig
         except ImportError as exc:
             raise ImportError(
-                "SO-101 leader needs lerobot[feetech]>=0.6.1,<0.7 (the arena-so101 `leader` extra). "
+                "SO-101 leader needs lerobot[feetech]>=0.6.1,<0.7 (the isaaclab-so101 `leader` extra). "
                 "Install it into the Isaac Sim Python: python -m pip install 'lerobot[feetech]>=0.6.1,<0.7'"
             ) from exc
 
@@ -139,5 +139,5 @@ class SO101LeaderDeviceCfg(DeviceCfg):
     # Consecutive failed reads to tolerate (holding the last action) before raising.
     max_consecutive_read_failures: int = 10
     retargeters: None = None
-    # {DIR} is the parent package (arena_so101), same pattern as Se3KeyboardCfg.
+    # {DIR} is the parent package (isaaclab_so101), same pattern as Se3KeyboardCfg.
     class_type: type[SO101LeaderDevice] | str = "{DIR}.leader_device:SO101LeaderDevice"

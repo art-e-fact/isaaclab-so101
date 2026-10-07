@@ -19,8 +19,8 @@ from isaaclab.devices.device_base import DeviceCfg
 from isaaclab_arena.assets.device_library import TeleopDeviceBase
 from isaaclab_arena.assets.register import register_device
 
-from arena_so101.gamepad_device import SO101NaturalGamepadCfg
-from arena_so101.leader_device import SO101LeaderDeviceCfg
+from isaaclab_so101.gamepad_device import SO101NaturalGamepadCfg
+from isaaclab_so101.leader_device import SO101LeaderDeviceCfg
 
 
 @register_device

@@ -21,15 +21,14 @@ Planned features:
 First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html),
 or only [Isaac Lab](https://isaac-sim.github.io/IsaacLab/) for the [Isaac Lab configs](#isaac-lab-without-arena).
 
-Requires Python 3.12 (same as Arena). The repository is `isaaclab-so101`; the package you install is
-`arena-so101`, and you import it as `arena_so101`. It is not on PyPI, so install from git:
+Requires Python 3.12 (same as Arena). The package is not on PyPI yet, so install from git:
 
 ```bash
-uv add "arena-so101 @ git+https://github.com/art-e-fact/isaaclab-so101.git"
+uv add "isaaclab-so101 @ git+https://github.com/art-e-fact/isaaclab-so101.git"
 # optional extras: `lerobot` (LeRobot dataset recorder), `leader` (physical leader arm teleop)
-uv add "arena-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
+uv add "isaaclab-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
 # or with pip, e.g. inside the Isaac Sim Python
-python -m pip install "arena-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
+python -m pip install "isaaclab-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
 ```
 
 The base package has no Python dependencies; Isaac Sim, Isaac Lab and Arena come from your
@@ -39,12 +38,12 @@ environment. The extras pin `lerobot>=0.6.1,<0.7`. If a lerobot upgrade would re
 After `SimulationApp` is running, register once:
 
 ```python
-import arena_so101
-arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_abs_ik, so101_leader, so101_gamepad
+import isaaclab_so101
+isaaclab_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_abs_ik, so101_leader, so101_gamepad
 ```
 
 Joint names, limits, the home pose, Jaw open/close targets, the TCP offset, the pan axis and asset paths are exported as
-plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, TCP_OFFSET, PAN_AXIS_XY, USD_PATH`.
+plain constants (no Isaac Sim needed): `from isaaclab_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, TCP_OFFSET, PAN_AXIS_XY, USD_PATH`.
 `HOME_JOINT_POS` is read-only; pass `dict(HOME_JOINT_POS)` to configs. `CUROBO_ROBOT_YML` is the shipped cuRobo
 config (see below).
 
@@ -74,19 +73,19 @@ group as `camera_ego_rgb` and `external_camera_rgb`:
   `embodiment.set_external_camera_view(eye, target)`, both relative to the robot base with the arm facing +X.
   The default is eye `(0.55, -0.6, 0.45)`, target `(0.12, 0, 0.1)`.
 
-Both carry Arena's camera extrinsics and intrinsics variations. `arena_so101.cameras.look_at_offset(eye, target)`
+Both carry Arena's camera extrinsics and intrinsics variations. `isaaclab_so101.cameras.look_at_offset(eye, target)`
 builds the `CameraCfg.OffsetCfg` for a camera of your own (points in the camera's parent frame).
 
 ### Recording LeRobot datasets
 
-`arena_so101.lerobot` (the `lerobot` extra) writes rollouts straight into a LeRobot v3 dataset. `observation.state`
+`isaaclab_so101.lerobot` (the `lerobot` extra) writes rollouts straight into a LeRobot v3 dataset. `observation.state`
 is `policy.joint_pos`; `action` is the absolute joint targets the sim received for that step, so all three
 embodiments record the same joint-space action (relative and IK actions end as position targets too); and there is
 one video per camera in `cameras` (sim observation term → dataset key; the default is the two embodiment cameras as
 `observation.images.ego_view` / `exterior_image`). Frames are uint8 or float in [0, 1], as `camera_obs` gives them.
 
 ```python
-from arena_so101.lerobot import SO101LeRobotRecorder, camera_shapes, joint_targets
+from isaaclab_so101.lerobot import SO101LeRobotRecorder, camera_shapes, joint_targets
 
 with SO101LeRobotRecorder(
     root="datasets/lift", repo_id="me/so101_lift", fps=round(1 / env.unwrapped.step_dt),
@@ -104,10 +103,10 @@ with SO101LeRobotRecorder(
 
 ## Isaac Lab (without Arena)
 
-`arena_so101.assets` imports only Isaac Lab. Like `isaaclab_assets`, import it after the simulation app starts:
+`isaaclab_so101.assets` imports only Isaac Lab. Like `isaaclab_assets`, import it after the simulation app starts:
 
 ```python
-from arena_so101.assets import SO101_CFG  # also SO101_HIGH_PD_CFG (for IK), SO101_WRIST_CAMERA_CFG
+from isaaclab_so101.assets import SO101_CFG  # also SO101_HIGH_PD_CFG (for IK), SO101_WRIST_CAMERA_CFG
 
 robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 ```
@@ -160,7 +159,7 @@ into an absolute one (cuRobo would look for a relative path under its own assets
 ```python
 from curobo.motion_planner import MotionPlanner, MotionPlannerCfg
 
-from arena_so101.curobo import robot_cfg
+from isaaclab_so101.curobo import robot_cfg
 
 planner = MotionPlanner(MotionPlannerCfg.create(robot=robot_cfg()))  # plans target `tcp`, the point between the jaw tips
 ```
@@ -176,25 +175,25 @@ what the shape-sorting demo plans with. Isaac Lab's `isaaclab_mimic` planner and
 placement-reachability check still pin cuRobo 0.7.7 (`ebb7170`): 0.8.0 removed every module they import, and
 0.7.7's loader rejects this YAML (`tool_frames` instead of `ee_link`, `format_version`), so no environment can hold
 both. SO-101 therefore registers no `CuroboEmbodimentCfg`, and Arena's `ik_reachable` placement check is unsupported
-until Arena moves to 0.8. The YAML's `arena_so101:` block already carries what that registration needs
+until Arena moves to 0.8. The YAML's `isaaclab_so101:` block already carries what that registration needs
 (`ee_link_name`, the gripper joint with its open and closed positions, `hand_link_names`).
 
 ### Regenerating (maintainers)
 
 `generate_curobo_config` converts the USD to URDF (Isaac Sim), fits collision spheres (cuRobo, CUDA) and writes the
-YAML. It never writes into the installed package: the default output is `~/.cache/arena_so101/curobo`, and a
+YAML. It never writes into the installed package: the default output is `~/.cache/isaaclab_so101/curobo`, and a
 checkout refreshes the shipped files with `--output-dir` (`meshes/` stays untracked):
 
 ```bash
 # Inside the Isaac Sim / Arena env (needs CUDA + nvidia-curobo)
-python -m arena_so101.generate_curobo_config --headless --output-dir src/arena_so101/embodiments/data/curobo
+python -m isaaclab_so101.generate_curobo_config --headless --output-dir src/isaaclab_so101/embodiments/data/curobo
 ```
 
 Rebuild only the spheres from the URDF and meshes already in the output directory, without Isaac Sim (still needs
 CUDA + nvidia-curobo, and `usd-core` to read the authored spheres):
 
 ```bash
-python -m arena_so101.generate_curobo_config --skip-usd-convert --output-dir src/arena_so101/embodiments/data/curobo
+python -m isaaclab_so101.generate_curobo_config --skip-usd-convert --output-dir src/isaaclab_so101/embodiments/data/curobo
 ```
 
 For a URDF elsewhere, pass `--urdf <file>` and `--asset-path <mesh dir>`. Add `--visualize` to inspect the fitted
@@ -232,7 +231,7 @@ Speeds are `pos_delta_scale` (m/step at the fingertips, default `0.004`) and `de
 on `SO101GamepadCfg`; `SO101NaturalGamepadCfg.signs` flips an axis.
 
 **Only what the arm can do.** The device holds a target `(pan, reach, z, tilt, roll)` and moves it one axis at a
-time, keeping a step only if `arena_so101.ee_pose.natural_ik`, a closed-form solution of the five joints checked
+time, keeping a step only if `isaaclab_so101.ee_pose.natural_ik`, a closed-form solution of the five joints checked
 against their limits, can hold the result. A stick held past the arm's reach stops the target at the edge while the
 other axes keep moving, instead of running it away into poses the IK can only fight over (which is what made the arm
 oscillate). The edge sits 2 cm inside full stretch (the last centimetres of reach take the last 46° of elbow bend,
@@ -259,7 +258,7 @@ fighting an impossible orientation.
 ![Top view: the gripper faces out along the arm and turns by itself when moved sideways. Side view: z, tilt and roll.](docs/natural_control.svg)
 
 In numbers: `R = Rz(azimuth) · Ry(tilt) · Rz(roll)`, where the azimuth is the direction of the fingertips seen from
-the pan axis (`PAN_AXIS_XY`). `arena_so101.ee_pose.natural_ee_quat_xyzw(x, y, tilt, roll)` returns it as a
+the pan axis (`PAN_AXIS_XY`). `isaaclab_so101.ee_pose.natural_ee_quat_xyzw(x, y, tilt, roll)` returns it as a
 quaternion without Isaac Sim, and the [arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/)
 cuRobo policy builds its grasp and insertion poses the same way. One approximation: the TCP sits 7 mm off the roll
 axis, which skews the heading by under 3° beyond 15 cm from the pan axis. The IK absorbs it.
@@ -312,7 +311,7 @@ Licensed under either of
 
 at your option.
 
-Exception: `src/arena_so101/embodiments/data/SO-ARM101-USD.usd` is Copyright NVIDIA
+Exception: `src/isaaclab_so101/embodiments/data/SO-ARM101-USD.usd` is Copyright NVIDIA
 Corporation & Affiliates, from the
 [Sim-to-Real-SO-101-Workshop](https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop),
 and is licensed under Apache-2.0 only.

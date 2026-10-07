@@ -3,7 +3,7 @@ requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "arena-so101"
+name = "isaaclab-so101"
 version = "0.1.0"
 description = "SO-101 embodiment and leader teleop for Isaac Lab Arena"
 license = "MIT OR Apache-2.0"
@@ -14,7 +14,7 @@ requires-python = ">=3.12"
 dependencies = []
 
 [project.optional-dependencies]
-# LeRobot dataset recorder (arena_so101.lerobot).
+# LeRobot dataset recorder (isaaclab_so101.lerobot).
 lerobot = ["lerobot[dataset]>=0.6.1,<0.7"]
 # Physical SO-101 leader arm teleop (so101_leader device).
 leader = ["lerobot[feetech]>=0.6.1,<0.7"]
@@ -25,7 +25,7 @@ dev = ["pytest", "ruff", "torch", "numpy", "pyyaml"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-arena_so101 = [
+isaaclab_so101 = [
     "embodiments/data/*.usd",
     "embodiments/data/*.usda",
     "embodiments/data/curobo/*.yml",

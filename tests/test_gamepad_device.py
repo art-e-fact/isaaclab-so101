@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from arena_so101 import JOINT_LIMITS_RAD
-from arena_so101.ee_pose import HOME_NATURAL_POSE, natural_ee_quat_xyzw, pan_reach_from_xy
+from isaaclab_so101 import JOINT_LIMITS_RAD
+from isaaclab_so101.ee_pose import HOME_NATURAL_POSE, natural_ee_quat_xyzw, pan_reach_from_xy
 
 
 def _events(pad, gamepad_input, *values):

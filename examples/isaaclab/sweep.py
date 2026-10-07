@@ -23,8 +23,8 @@ from isaaclab.assets import AssetBaseCfg
 from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
 from isaaclab.utils.configclass import configclass
 
-from arena_so101 import SIM_JOINT_NAMES
-from arena_so101.assets import SO101_CFG
+from isaaclab_so101 import SIM_JOINT_NAMES
+from isaaclab_so101.assets import SO101_CFG
 
 AMPLITUDE_RAD = 0.5
 SWEEP_S = 2.0  # per joint: one sine period, so each joint is home again when the next starts

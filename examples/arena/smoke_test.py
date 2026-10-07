@@ -41,8 +41,8 @@ def check(embodiment_name: str, args) -> None:
     import torch
     from isaaclab.utils.math import quat_apply
 
-    from arena_so101 import JAW_OPEN_RAD, TCP_OFFSET
-    from arena_so101.lerobot import joint_targets
+    from isaaclab_so101 import JAW_OPEN_RAD, TCP_OFFSET
+    from isaaclab_so101.lerobot import joint_targets
     from so101_table import SO101TableEnvironmentCfg
 
     env, _ = build(args, SO101TableEnvironmentCfg(embodiment=embodiment_name))
@@ -87,7 +87,7 @@ def check_placement(args) -> None:
     from isaaclab_arena.relations.relations import IsAnchor, On
     from isaaclab_arena.utils.pose import Pose
 
-    from arena_so101.assets import SO101_CFG
+    from isaaclab_so101.assets import SO101_CFG
 
     def on_table(arena_env) -> None:
         table = arena_env.scene.assets["maple_table_robolab"]
@@ -172,7 +172,7 @@ def check_parity(args) -> None:
     import torch
     from isaaclab_arena.environments.arena_world import ArenaWorld
 
-    from arena_so101 import JAW_OPEN_RAD
+    from isaaclab_so101 import JAW_OPEN_RAD
     from so101_table import SO101TableEnvironmentCfg
 
     env, arena_env = build(
@@ -212,9 +212,9 @@ def check_natural(args) -> None:
     import torch
     from isaaclab.utils.math import quat_error_magnitude
 
-    from arena_so101 import JAW_CLOSE_RAD
-    from arena_so101.ee_pose import HOME_NATURAL_POSE, natural_ee_quat_xyzw
-    from arena_so101.gamepad_device import SO101NaturalGamepadCfg
+    from isaaclab_so101 import JAW_CLOSE_RAD
+    from isaaclab_so101.ee_pose import HOME_NATURAL_POSE, natural_ee_quat_xyzw
+    from isaaclab_so101.gamepad_device import SO101NaturalGamepadCfg
     from so101_table import SO101TableEnvironmentCfg
 
     env, _ = build(args, SO101TableEnvironmentCfg(embodiment="so101_abs_ik", teleop_device="so101_gamepad"))
@@ -263,8 +263,8 @@ def check_recorder(args) -> None:
     import numpy as np
     import torch
 
-    from arena_so101 import SIM_JOINT_NAMES
-    from arena_so101.lerobot import SO101LeRobotRecorder, camera_shapes, joint_targets
+    from isaaclab_so101 import SIM_JOINT_NAMES
+    from isaaclab_so101.lerobot import SO101LeRobotRecorder, camera_shapes, joint_targets
     from so101_table import SO101TableEnvironmentCfg
 
     # lerobot is not in Arena's venv: stand in for LeRobotDataset and keep the frames the recorder adds.

@@ -1,4 +1,4 @@
-"""SO-101 follower embodiments for Isaac Lab Arena, built on the Isaac Lab configs in ``arena_so101.assets``.
+"""SO-101 follower embodiments for Isaac Lab Arena, built on the Isaac Lab configs in ``isaaclab_so101.assets``.
 
 Cameras are Python ``CameraCfg`` sensors: wrist RGB on ``Robot/gripper/gripper_cam``, plus an
 ``external_camera`` on the base link (over-shoulder / table view), so it moves with the robot.
@@ -38,9 +38,9 @@ from isaaclab_arena.embodiments.gripper import ParallelJawGripper
 from isaaclab_arena.utils.cameras import ArenaCameraCfg
 from isaaclab_arena.utils.pose import Pose, PosePerEnv
 
-from arena_so101.assets import SO101_CFG, SO101_HIGH_PD_CFG, SO101_WRIST_CAMERA_CFG
-from arena_so101.cameras import look_at_offset
-from arena_so101.constants import (
+from isaaclab_so101.assets import SO101_CFG, SO101_HIGH_PD_CFG, SO101_WRIST_CAMERA_CFG
+from isaaclab_so101.cameras import look_at_offset
+from isaaclab_so101.constants import (
     ARM_JOINT_NAMES,
     FIXED_JAW_TIP_XZ,
     JAW_CLOSE_RAD,
@@ -49,7 +49,7 @@ from arena_so101.constants import (
     SIM_JOINT_NAMES,
     TCP_OFFSET,
 )
-from arena_so101.gamepad_device import reseed_natural_gamepads
+from isaaclab_so101.gamepad_device import reseed_natural_gamepads
 
 # The arm faces +X only because SO101_CFG.init_state yaws its base 90° (see assets.py). Arena writes the
 # Pose it is given straight into init_state and the root-pose reset event, so a plain Pose() would drop

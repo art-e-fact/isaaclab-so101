@@ -2,15 +2,15 @@
 # SO-101 example environment for Isaac Lab Arena, on the host (no Docker).
 #
 # Clones IsaacLab-Arena at ARENA_REV into ./IsaacLab-Arena, syncs Arena's own uv environment
-# (Isaac Sim, Isaac Lab from Arena's submodule, Arena), installs arena-so101 from ../.. editable
+# (Isaac Sim, Isaac Lab from Arena's submodule, Arena), installs isaaclab-so101 from ../.. editable
 # into it, and activates that environment in the current shell.
 #
 # Must be sourced so the activation sticks:
 #   source ./setup.sh
 #
 # Options:
-#   --force    Re-run uv sync and reinstall arena-so101 even if the environment exists
-#   --leader   Install arena-so101 with its `leader` extra (lerobot, for a physical leader arm)
+#   --force    Re-run uv sync and reinstall isaaclab-so101 even if the environment exists
+#   --leader   Install isaaclab-so101 with its `leader` extra (lerobot, for a physical leader arm)
 #   -h/--help  Show this help
 #
 # Env: ARENA_DIR — an existing IsaacLab-Arena checkout to use instead of cloning one. Its commit
@@ -77,9 +77,9 @@ _setup_main() {
     SYNCED=true
   fi
 
-  # uv sync removes what Arena's lock doesn't list, so arena-so101 goes back in after every sync.
-  if [[ "${SYNCED}" == true || -n "${EXTRAS}" ]] || ! "${VENV}/bin/python" -c 'import arena_so101' 2>/dev/null; then
-    echo "setup.sh: installing arena-so101${EXTRAS} editable from ${HERE}/../.. ..."
+  # uv sync removes what Arena's lock doesn't list, so isaaclab-so101 goes back in after every sync.
+  if [[ "${SYNCED}" == true || -n "${EXTRAS}" ]] || ! "${VENV}/bin/python" -c 'import isaaclab_so101' 2>/dev/null; then
+    echo "setup.sh: installing isaaclab-so101${EXTRAS} editable from ${HERE}/../.. ..."
     uv pip install --python "${VENV}/bin/python" -e "${HERE}/../..${EXTRAS}" || return 1
   fi
 

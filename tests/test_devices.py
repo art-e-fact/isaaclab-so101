@@ -17,13 +17,13 @@ def test_natural_gamepad_pairs_with_the_absolute_ik_embodiment(isaac):
 
 
 def test_isaac_fixture_restores_modules(isaac):
-    assert sys.modules["arena_so101.devices"] is isaac.devices
+    assert sys.modules["isaaclab_so101.devices"] is isaac.devices
 
 
 def test_isaac_fixture_left_no_stub_built_modules():
     # Runs after the tests above (file order): the stub-built modules must be gone.
-    assert "arena_so101.devices" not in sys.modules
-    assert "arena_so101.embodiments" not in sys.modules
-    assert "arena_so101.assets" not in sys.modules
+    assert "isaaclab_so101.devices" not in sys.modules
+    assert "isaaclab_so101.embodiments" not in sys.modules
+    assert "isaaclab_so101.assets" not in sys.modules
     assert "carb" not in sys.modules
     assert "isaaclab" not in sys.modules

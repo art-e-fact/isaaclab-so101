@@ -1,12 +1,12 @@
 # SO-101 in Isaac Lab (no Arena)
 
-Two examples that use the robot configs from `arena_so101.assets` with plain Isaac Lab:
+Two examples that use the robot configs from `isaaclab_so101.assets` with plain Isaac Lab:
 
 - `sweep.py` spawns the arm with Isaac Lab's scene API and moves each joint in turn.
 - `so101_reach.py` puts the arm in Isaac Lab's reach task, which Isaac Lab's own `isaaclab train` and
   `isaaclab play` run.
 
-This directory is a uv project: `uv sync` installs Isaac Sim 6.1, Isaac Lab 3.0.0rc1 and arena-so101 (from `../..`,
+This directory is a uv project: `uv sync` installs Isaac Sim 6.1, Isaac Lab 3.0.0rc1 and isaaclab-so101 (from `../..`,
 editable). Arena is not installed.
 
 Requirements: Linux x86_64, a GPU and driver that
