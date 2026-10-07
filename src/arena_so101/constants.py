@@ -42,6 +42,11 @@ JAW_CLOSE_RAD, JAW_OPEN_RAD = JOINT_LIMITS_RAD[-1]
 # Jaw = -10° (-0.004, 0.000, -0.101). The IK action, ``ee_frame`` and the cuRobo tool frame all target it.
 TCP_OFFSET = (-0.007, 0.0, -0.102)
 
+# The shoulder-pan axis in the base frame (the URDF's ``Rotation`` joint origin): the arm's vertical plane turns
+# about it, 3 cm from the base origin. The wrist-roll axis passes through it (0.2 mm off), so a gripper facing
+# away from this point along the arm is one the 5-DoF arm can hold; see ``arena_so101.ee_pose``.
+PAN_AXIS_XY = (0.0207909, -0.0230745)
+
 # Jaw geometry for the gap between the tips: the moving tip at Jaw = 0 and the fixed tip, relative to the Jaw
 # pivot in the ``gripper`` frame's XZ plane (the jaw swings about the pivot's -Y axis). Measured from the USD.
 JAW_TIP_XZ = (-0.0100, -0.0810)

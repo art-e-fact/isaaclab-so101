@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 350" width="880" height="350" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13">
+<style>
+  .bg{fill:#fff}.t{fill:#3c3c43}.m{fill:#6b7280;font-size:12px}.h{fill:#3c3c43;font-weight:600;font-size:14px}
+  .ln{stroke:#6b7280;stroke-width:1.5;fill:none}.faint{stroke:#9ca3af;stroke-width:1.2;fill:none;stroke-dasharray:4 4}
+  .ground{stroke:#9ca3af;stroke-width:1.5}
+  .arm{stroke:#6b7280;stroke-width:5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .grip{stroke:#2b7de9;stroke-width:5;fill:none;stroke-linecap:round}.gripf{stroke:#2b7de9;stroke-width:3;fill:none;stroke-linecap:round;opacity:.35}
+  .dot{fill:#2b7de9}.pan{fill:#3c3c43}.base{fill:#e5e7eb;stroke:#9ca3af;stroke-width:1.2}
+  .arr{stroke:#2b7de9;stroke-width:2;fill:none}.knob{stroke:#e0812e;stroke-width:2;fill:none}.kf{fill:#e0812e}.k{fill:#e0812e;font-weight:600}
+  .b{fill:#2b7de9;font-weight:600}
+  @media (prefers-color-scheme: dark){
+    .bg{fill:#0d1117}.t,.h{fill:#e5e7eb}.m{fill:#9ca3af}.pan{fill:#e5e7eb}.base{fill:#374151;stroke:#6b7280}
+    .ln,.arm{stroke:#9ca3af}.faint,.ground{stroke:#6b7280}.grip,.gripf,.arr{stroke:#5aa0ff}.dot{fill:#5aa0ff}.b{fill:#5aa0ff}
+  }
+</style>
+<defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2b7de9"/></marker>
+  <marker id="ahk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e0812e"/></marker>
+</defs>
+<rect class="bg" width="880" height="350"/>
+<text class="h" x="24" y="30">From above</text>
+<text class="m" x="24" y="48">pan and reach say where the fingertips are. The heading is not a knob:</text>
+<text class="m" x="24" y="64">the gripper always faces out along the arm.</text>
+<rect class="base" x="92" y="179" width="52" height="52" rx="8"/>
+<circle class="pan" cx="118" cy="205" r="3.5"/>
+<text class="m" x="90" y="249">pan axis</text>
+<line class="faint" x1="118" y1="205" x2="270.1" y2="266.4"/>
+<circle class="dot" cx="257.1" cy="261.2" r="7"/>
+<line class="grip" x1="243.2" y1="261.0" x2="246.9" y2="251.7"/>
+<line class="grip" x1="267.3" y1="270.7" x2="271.0" y2="261.4"/>
+<path class="arr" d="M277.5,269.4 L312.7,283.7" marker-end="url(#ah)"/>
+<line class="faint" x1="118" y1="205" x2="262.8" y2="128.0"/>
+<circle class="dot" cx="250.4" cy="134.6" r="7"/>
+<line class="grip" x1="241.3" y1="145.1" x2="236.6" y2="136.3"/>
+<line class="grip" x1="264.3" y1="132.9" x2="259.6" y2="124.1"/>
+<path class="arr" d="M269.9,124.3 L303.4,106.4" marker-end="url(#ah)"/>
+<text class="b" x="327" y="265">faces out along the arm</text>
+<text class="m" transform="translate(192.2,165.6) rotate(-28)" y="-6" text-anchor="middle">arm plane</text>
+<path class="knob" d="M300.4,250.5 A188,188 0 0 0 294.7,140.7" marker-end="url(#ahk)"/>
+<text class="k" x="326" y="193">pan the arm,</text>
+<text class="k" x="326" y="210">the gripper turns by itself</text>
+<text class="m" x="158" y="300">forward →</text>
+<text class="h" x="510" y="30">In the arm plane</text>
+<text class="m" x="510" y="48">z lifts the fingertips. tilt leans the gripper along the arm.</text>
+<text class="m" x="510" y="64">roll spins it about its own axis.</text>
+<line class="ground" x1="500" y1="282" x2="856" y2="282"/>
+<rect class="base" x="518" y="238" width="44" height="44" rx="6"/>
+<line class="faint" x1="540" y1="238" x2="540" y2="84"/>
+<text class="m" x="546" y="96">pan axis</text>
+<path class="arm" d="M540,238 L635,132 L730,170"/>
+<circle class="pan" cx="730" cy="170" r="4"/>
+<line class="gripf" x1="730" y1="170" x2="730.0" y2="242.0"/>
+<line class="gripf" x1="734.4" y1="224.5" x2="730.0" y2="242.0"/>
+<line class="gripf" x1="725.6" y1="224.5" x2="730.0" y2="242.0"/>
+<g transform="translate(754.4,201.2) rotate(-38)"><path class="knob" style="opacity:.45" stroke-dasharray="3 3" d="M18.8,-2.4 A20,7 0 0 0 -18.8,-2.4"/></g>
+<line class="grip" x1="730" y1="170" x2="774.3" y2="226.7"/>
+<line class="grip" x1="767.0" y1="210.3" x2="774.3" y2="226.7"/>
+<line class="grip" x1="760.1" y1="215.7" x2="774.3" y2="226.7"/>
+<g transform="translate(754.4,201.2) rotate(-38)"><path class="knob" style="stroke-width:2.5" d="M-18.8,-2.4 A20,7 0 1 0 12.6,5.4"/><path class="kf" d="M18.3,-2.8 L16.3,8.0 L8.9,2.9 z"/></g>
+<text class="k" x="763" y="176">roll</text>
+<path class="knob" d="M736.1,257.8 A88,88 0 0 0 779.2,243.0" marker-end="url(#ahk)"/>
+<text class="k" x="748" y="278">tilt</text>
+<text class="m" x="706" y="278">0</text>
+<path class="arr" d="M820,262 L820,122" marker-end="url(#ah)" marker-start="url(#ah)"/>
+<text class="b" x="830" y="196">z</text>
+<text class="m" x="580" y="304">fingertips leaning away from the base: tilt &lt; 0</text>
+<text class="m" x="24" y="340">Orientation = face out along the arm (decided by the pan), then lean by tilt, then spin by roll: a ZYZ Euler sequence.</text>
+</svg>

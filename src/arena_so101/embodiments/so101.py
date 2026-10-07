@@ -49,6 +49,7 @@ from arena_so101.constants import (
     SIM_JOINT_NAMES,
     TCP_OFFSET,
 )
+from arena_so101.gamepad_device import reseed_natural_gamepads
 
 # The arm faces +X only because SO101_CFG.init_state yaws its base 90° (see assets.py). Arena writes the
 # Pose it is given straight into init_state and the root-pose reset event, so a plain Pose() would drop
@@ -162,6 +163,9 @@ class SO101EventCfg:
             "velocity_range": (0.0, 0.0),
         },
     )
+    # The natural gamepad holds an absolute TCP target; when the env resets itself (task success) the target
+    # has to follow, or the arm snaps home and lunges back to it. A no-op without a live gamepad.
+    reseed_gamepad_target: EventTermCfg = EventTermCfg(func=reseed_natural_gamepads, mode="reset")
 
 
 @configclass
@@ -292,7 +296,7 @@ class SO101EmbodimentBase(EmbodimentBase):
 
 @register_asset
 class SO101AbsJointEmbodiment(SO101EmbodimentBase):
-    """Absolute joint positions — preferred for SO-101 leader / joint gamepad teleop."""
+    """Absolute joint positions — preferred for SO-101 leader teleop."""
 
     name = "so101_abs_joint"
 
@@ -325,3 +329,21 @@ class SO101IKEmbodiment(SO101EmbodimentBase):
 
     def get_command_body_name(self) -> str:
         return self.action_config.arm_action.body_name
+
+
+@register_asset
+class SO101AbsIKEmbodiment(SO101IKEmbodiment):
+    """Absolute TCP pose (position + quaternion (x, y, z, w), base frame) through differential IK + binary Jaw.
+
+    For the natural gamepad layout (``so101_gamepad``), which holds a target pose instead of streaming deltas:
+    the relative IK of ``so101_ik`` adds each delta to the *measured* pose, so a held target would drift off the
+    reachable set as the 5-DoF arm falls short of it; absolute commands pull it back every step. Keyboard and
+    spacemouse stream deltas, so they stay with ``so101_ik``.
+    """
+
+    name = "so101_abs_ik"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.action_config.arm_action.controller.use_relative_mode = False  # 7-dim command: position + quaternion
+        self.action_config.arm_action.scale = 1.0  # the scale multiplies the whole command, quaternion included

@@ -11,7 +11,7 @@ Environments using this embodiment:
 - [Arena Shape Sorting](https://github.com/art-e-fact/arena-shape-sorting/)
 
 Planned features:
- - More natural teleop setup with gamepad and keyboard.
+ - A natural teleop layout for the keyboard (the gamepad already has one: [Natural gamepad layout](#natural-gamepad-layout-so101_abs_ik--so101_gamepad)).
 
 ## Install
 
@@ -37,11 +37,11 @@ After `SimulationApp` is running, register once:
 
 ```python
 import arena_so101
-arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_leader, so101_gamepad
+arena_so101.register()  # so101_abs_joint, so101_rel_joint, so101_ik, so101_abs_ik, so101_leader, so101_gamepad
 ```
 
-Joint names, limits, the home pose, Jaw open/close targets, the TCP offset and asset paths are exported as
-plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, TCP_OFFSET, USD_PATH`.
+Joint names, limits, the home pose, Jaw open/close targets, the TCP offset, the pan axis and asset paths are exported as
+plain constants (no Isaac Sim needed): `from arena_so101 import SIM_JOINT_NAMES, HOME_JOINT_POS, JAW_OPEN_RAD, TCP_OFFSET, PAN_AXIS_XY, USD_PATH`.
 `HOME_JOINT_POS` is read-only; pass `dict(HOME_JOINT_POS)` to configs. `CUROBO_ROBOT_YML` is the shipped cuRobo
 config (see below).
 
@@ -118,9 +118,10 @@ USD yet: it carries its own world joint, and Newton won't merge it with the one 
 
 | Name | Actions |
 |------|---------|
-| `so101_abs_joint` | Absolute joint positions (leader + joint-space gamepad) |
+| `so101_abs_joint` | Absolute joint positions (leader) |
 | `so101_rel_joint` | Relative joint positions (for policies; no teleop device pairing) |
 | `so101_ik` | Relative SE(3) differential IK + binary Jaw (keyboard / gamepad / spacemouse) |
+| `so101_abs_ik` | Absolute TCP pose (position + quaternion, base frame) through the same IK + binary Jaw ([natural gamepad](#natural-gamepad-layout-so101_abs_ik--so101_gamepad)) |
 
 Every episode reset returns the arm to `init_state.joint_pos`: the home pose, or whatever you set with
 `set_joint_initial_pos`. Pass `reset_joint_noise=<rad>` to the constructor to add uniform noise to each joint.
@@ -144,6 +145,8 @@ The robot USD comes from the [Sim-to-Real-SO-101-Workshop](https://github.com/is
 `so101_ik` is a 5-DOF arm: DLS tracks EE position and does best-effort orientation on the 6D pose command.
 The IK command and `ee_frame` target the TCP between the jaw tips (`TCP_OFFSET`: 10.2 cm along the jaws from the
 wrist-roll axis, in the `gripper` link frame), so rotations pivot about the tips and reach rewards measure to them.
+`so101_abs_ik` is the same IK fed absolute poses, `(x, y, z, qx, qy, qz, qw)` in the base frame, for devices that
+hold a target instead of streaming deltas.
 
 ## cuRobo planning assets
 
@@ -203,23 +206,74 @@ links. To edit them, open the USDA in Isaac Sim (it references the robot USD nex
 generator reads each sphere's `radius` and `xformOp:translate` (link-local, metres) with `pxr` alone. A link with
 at least one authored sphere keeps only the authored ones. Then regenerate as above (`--skip-usd-convert` is enough).
 
-### Joint-space gamepad layout (`so101_abs_joint` + `so101_gamepad`)
+## Teleop devices
 
-Sticks/triggers integrate into a held absolute joint target. Releasing sticks holds pose.
+### Natural gamepad layout (`so101_abs_ik` + `so101_gamepad`)
 
-| Input | Joint |
+The sticks drive the arm in its own coordinates; the gripper's heading, and its lean when it must, take care of
+themselves.
+
+| Input | Moves |
 |-------|-------|
-| RT (+) / LT (−) | `Rotation` (base yaw) |
-| Left stick up/down | `Pitch` |
-| Left stick left/right | `Elbow` |
-| Right stick up/down | `Wrist_Pitch` |
-| Right stick right/left | `Wrist_Roll` |
-| X | `Jaw` toggle open / close (absolute limits). After a reset the jaw keeps its reset pose until the first press. |
+| Left stick up/down | `reach`: fingertips out along the arm / back in |
+| Left stick left/right | `pan`: swing the arm left / right (the fingertips move sideways at the same speed at any reach) |
+| RT / LT | fingertips up / down |
+| Right stick up/down | `tilt`: lean the gripper along the arm (up: fingertips swing away from the base) |
+| Right stick left/right | `roll`: spin the gripper about its own axis (right: clockwise seen from above, jaws pointing down) |
+| X | `Jaw` toggle open / close |
+| LB (held) | slow: a quarter of the speed |
+| D-pad up / down | speed ×1.25 / ÷1.25, between ×0.25 and ×2 |
+| Back, or keyboard R | reset the episode: the target returns to the home TCP and the jaw opens |
 
-Speed is `delta_scale` on `SO101GamepadCfg` (default `0.03` rad/step at full deflection).
+Speeds are `pos_delta_scale` (m/step at the fingertips, default `0.004`) and `delta_scale` (rad/step, default `0.03`)
+on `SO101GamepadCfg`; `SO101NaturalGamepadCfg.signs` flips an axis.
 
-`so101_gamepad` with `so101_ik` uses Isaac Lab's SE(3) gamepad layout. The device was named
-`gamepad` before; pass `--teleop_device so101_gamepad` now.
+**Only what the arm can do.** The device holds a target `(pan, reach, z, tilt, roll)` and moves it one axis at a
+time, keeping a step only if `arena_so101.ee_pose.natural_ik`, a closed-form solution of the five joints checked
+against their limits, can hold the result. A stick held past the arm's reach stops the target at the edge while the
+other axes keep moving, instead of running it away into poses the IK can only fight over (which is what made the arm
+oscillate). The edge sits 2 cm inside full stretch (the last centimetres of reach take the last 46° of elbow bend,
+where the differential IK is sluggish and can fold the elbow the wrong way, after which it does not recover) and
+keeps the wrist axis 3 cm above the table, so the wrist and gripper housings clear it with the jaws horizontal. One more thing takes care of itself: the SO-101's wrist pitch runs out early (with the jaws pointing
+straight down the fingertips cannot rise above about 12 cm), so when a position step is impossible at the current
+tilt the device leans the gripper a step forward, or back, to make it possible. Lift from a vertical grasp and the
+gripper leans as it must; while a position stick pushes past what the tilt allows, that lean wins over the tilt
+stick. When an axis has nowhere left to go the terminal says so, once per push.
+
+**Why "natural".** A six-joint arm can put its tool anywhere in its workspace, pointing any way. The SO-101 has five
+joints, so one of those six freedoms is missing, and it is a specific one. The shoulder pan swings a vertical plane
+and the rest of the arm folds within it, the gripper's own axis included. Seen from above, the gripper therefore
+always faces away from the pan axis, out along the arm, wherever the fingertips are: its heading is decided by
+*where* it is. Ask for any other heading and the IK can only compromise.
+
+So this layout never asks. You pan the arm, reach out along it and lift; the device works out the one heading the
+arm can hold there, and two things stay free: `tilt`, how far the gripper leans up or down within the arm plane (0 is
+pointing straight down, negative swings the fingertips away from the base), and `roll`, how it spins about its own
+axis. Move the fingertips sideways and the gripper turns with the arm by itself, like a desk lamp whose head
+follows the arm: you only lean it and turn it. Every target is one the arm can take, so the IK settles instead of
+fighting an impossible orientation.
+
+![Top view: the gripper faces out along the arm and turns by itself when moved sideways. Side view: z, tilt and roll.](docs/natural_control.svg)
+
+In numbers: `R = Rz(azimuth) · Ry(tilt) · Rz(roll)`, where the azimuth is the direction of the fingertips seen from
+the pan axis (`PAN_AXIS_XY`). `arena_so101.ee_pose.natural_ee_quat_xyzw(x, y, tilt, roll)` returns it as a
+quaternion without Isaac Sim, and the [arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/)
+cuRobo policy builds its grasp and insertion poses the same way. One approximation: the TCP sits 7 mm off the roll
+axis, which skews the heading by under 3° beyond 15 cm from the pan axis. The IK absorbs it.
+
+The device integrates the sticks into a held target `(pan, reach, z, tilt, roll)`, starting at the home TCP
+(`HOME_NATURAL_POSE`), and emits `(x, y, z, qx, qy, qz, qw, jaw)` in the base frame. It pairs with `so101_abs_ik`
+because relative IK adds each delta to where the arm actually is, so a held target would drift as the arm falls
+short of it; absolute commands pull it back every step. A reset returns the target to the home TCP, so an arm
+started with `initial_joint_pose` is pulled there on the first step. The embodiment's reset event re-seeds the
+target as well: when the environment resets itself on task success, the arm does not snap home and lunge back to a
+stale target.
+
+`so101_gamepad` with `so101_ik` uses Isaac Lab's SE(3) gamepad layout, which asks for a yaw the arm cannot give.
+The device was named `gamepad` before; pass `--teleop_device so101_gamepad` now. The joint-space gamepad layout
+(`so101_abs_joint` + `so101_gamepad`) is gone; the natural layout replaces it.
+
+### Leader arm (`so101_abs_joint` + `so101_leader`)
 
 `so101_leader` emits a (6,) absolute joint vector, so it pairs only with `so101_abs_joint`. Also works with
 Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.

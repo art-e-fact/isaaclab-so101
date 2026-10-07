@@ -2,7 +2,7 @@
 
 Arena's built-in device library has keyboard / spacemouse / openxr but not
 gamepad. We register ``so101_gamepad`` here so ``@register_retargeter`` pairs with
-``so101_ik`` / ``so101_abs_joint`` resolve through ArenaEnvBuilder. The name is
+``so101_abs_ik`` / ``so101_ik`` resolve through ArenaEnvBuilder. The name is
 SO-101 specific so it cannot collide with a generic Arena ``gamepad`` device.
 
 ``so101_leader`` returns an Isaac Lab ``DeviceCfg`` that emits absolute joint
@@ -11,7 +11,6 @@ targets for ``so101_abs_joint`` (not SE3).
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 
 from isaaclab.devices import Se3GamepadCfg
@@ -20,20 +19,8 @@ from isaaclab.devices.device_base import DeviceCfg
 from isaaclab_arena.assets.device_library import TeleopDeviceBase
 from isaaclab_arena.assets.register import register_device
 
-from arena_so101.constants import HOME_JOINT_POS, SIM_JOINT_NAMES
-from arena_so101.joint_gamepad_device import SO101JointGamepadCfg
+from arena_so101.gamepad_device import SO101NaturalGamepadCfg
 from arena_so101.leader_device import SO101LeaderDeviceCfg
-
-
-def _resolve_joint_pos(joint_pos: dict[str, float]) -> tuple[float, ...]:
-    """Per-joint values from an ``init_state.joint_pos`` dict, in ``SIM_JOINT_NAMES`` order.
-
-    Keys may be exact names or regexes (Isaac Lab full-matches them); unmatched joints use the home pose.
-    """
-    return tuple(
-        float(next((v for key, v in joint_pos.items() if re.fullmatch(key, name)), HOME_JOINT_POS[name]))
-        for name in SIM_JOINT_NAMES
-    )
 
 
 @register_device
@@ -41,8 +28,8 @@ class SO101GamepadCfg(TeleopDeviceBase):
     """Registered as ``so101_gamepad``.
 
     Layout depends on the paired embodiment:
-    - ``so101_abs_joint`` → absolute joint gamepad (:class:`SO101JointGamepadCfg`)
-    - ``so101_ik`` → SE(3) gamepad (:class:`Se3GamepadCfg`)
+    - ``so101_abs_ik`` → natural TCP-pose gamepad (:class:`SO101NaturalGamepadCfg`)
+    - ``so101_ik`` → Isaac Lab's SE(3) gamepad (:class:`Se3GamepadCfg`)
     """
 
     name = "so101_gamepad"
@@ -53,21 +40,22 @@ class SO101GamepadCfg(TeleopDeviceBase):
         pos_sensitivity: float = 0.1,
         rot_sensitivity: float = 0.1,
         delta_scale: float = 0.03,
+        pos_delta_scale: float = 0.004,
     ):
         super().__init__(sim_device=sim_device)
         self.pos_sensitivity = pos_sensitivity
         self.rot_sensitivity = rot_sensitivity
-        self.delta_scale = delta_scale
+        self.delta_scale = delta_scale  # rad/step: the natural layout's tilt/roll
+        self.pos_delta_scale = pos_delta_scale  # m/step: the natural layout's pan, reach and height
 
     def get_device_cfg(
         self, pipeline_builder: Callable | None = None, embodiment: object | None = None
     ) -> DeviceCfg:
         emb_name = getattr(embodiment, "name", None)
-        if emb_name == "so101_abs_joint":
-            # Reset to the embodiment's current init pose (tracks set_joint_initial_pos).
-            return SO101JointGamepadCfg(
+        if emb_name == "so101_abs_ik":
+            return SO101NaturalGamepadCfg(
                 delta_scale=self.delta_scale,
-                default_joint_pos=_resolve_joint_pos(embodiment.scene_config.robot.init_state.joint_pos),
+                pos_delta_scale=self.pos_delta_scale,
                 sim_device=self.sim_device or "cpu",
             )
         if emb_name == "so101_ik":
@@ -77,7 +65,7 @@ class SO101GamepadCfg(TeleopDeviceBase):
             )
         raise ValueError(
             f"so101_gamepad has no layout for embodiment {emb_name!r}. "
-            "Use --embodiment so101_abs_joint (joint-space) or so101_ik (SE3)."
+            "Use --embodiment so101_abs_ik (natural TCP pose) or so101_ik (SE3)."
         )
 
 

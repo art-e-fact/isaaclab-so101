@@ -22,9 +22,10 @@ CUBE_POS = (0.25, 0.0, 0.055)
 @dataclass
 class SO101TableEnvironmentCfg(ArenaEnvironmentCfg):
     embodiment: str = "so101_abs_joint"
-    """so101_abs_joint, so101_rel_joint or so101_ik."""
+    """so101_abs_joint, so101_rel_joint, so101_ik or so101_abs_ik."""
     teleop_device: str | None = None
-    """so101_gamepad or so101_leader with so101_abs_joint; keyboard, spacemouse or so101_gamepad with so101_ik."""
+    """so101_gamepad with so101_abs_ik (natural layout), so101_leader with so101_abs_joint; keyboard, spacemouse
+    or so101_gamepad with so101_ik."""
     leader_port: str = "/dev/ttyACM0"
     """Serial port of the physical leader arm (so101_leader)."""
     enable_cameras: bool = False
