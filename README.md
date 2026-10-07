@@ -13,6 +13,9 @@ Environments using this embodiment:
 Planned features:
  - A natural teleop layout for the keyboard (the gamepad already has one: [Natural gamepad layout](#natural-gamepad-layout-so101_abs_ik--so101_gamepad)).
 
+<img width="1740" height="988" alt="image" src="https://github.com/user-attachments/assets/34f830f5-8955-47f8-ba60-1b45eedd32e9" />
+
+
 ## Install
 
 First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html),
