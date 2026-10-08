@@ -1,7 +1,7 @@
 """Isaac Lab teleop device: the SO-101 natural gamepad layout.
 
 :class:`SO101NaturalGamepad` emits an (8,) absolute TCP pose + jaw for ``so101_abs_ik``: the sticks pan the arm,
-reach out along it and lift, the gripper's yaw follows the arm (:mod:`arena_so101.ee_pose`), and a step is only
+reach out along it and lift, the gripper's yaw follows the arm (:mod:`isaaclab_so101.ee_pose`), and a step is only
 taken when :func:`natural_ik` finds joints for it, so the target never leaves what the arm can reach.
 """
 
@@ -18,8 +18,8 @@ import omni
 from isaaclab.devices.device_base import DeviceBase, DeviceCfg
 from isaaclab.utils.configclass import configclass
 
-from arena_so101.constants import JOINT_LIMITS_RAD
-from arena_so101.ee_pose import (
+from isaaclab_so101.constants import JOINT_LIMITS_RAD
+from isaaclab_so101.ee_pose import (
     HOME_NATURAL_POSE,
     natural_ee_quat_xyzw,
     natural_ik,

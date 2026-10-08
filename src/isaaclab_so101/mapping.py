@@ -10,8 +10,8 @@ import math
 
 import torch
 
-# Re-exported for existing ``arena_so101.mapping`` imports.
-from arena_so101.constants import JOINT_LIMITS_DEG, JOINT_LIMITS_RAD, SIM_JOINT_NAMES
+# Re-exported for existing ``isaaclab_so101.mapping`` imports.
+from isaaclab_so101.constants import JOINT_LIMITS_DEG, JOINT_LIMITS_RAD, SIM_JOINT_NAMES
 
 __all__ = [
     "JOINT_LIMITS_RAD",

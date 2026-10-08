@@ -3,7 +3,7 @@
 `so101_table.py` puts the SO-101 on a table with a cube to lift, using Arena's lift task. `setup.sh` builds the
 environment that runs it: it clones [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena) at a pinned
 commit into `IsaacLab-Arena/`, runs `uv sync` there (Isaac Sim, Isaac Lab from Arena's submodule and Arena, from
-Arena's own lock), installs arena-so101 from `../..` editable into that environment, and activates it. No Docker.
+Arena's own lock), installs isaaclab-so101 from `../..` editable into that environment, and activates it. No Docker.
 
 Requirements: Linux x86_64, a GPU and driver that
 [Isaac Sim 6.1 supports](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/requirements.html),
@@ -62,7 +62,7 @@ in the main README.
 
 ## Your own environment
 
-Copy `so101_table.py`. The one SO-101-specific step is calling `arena_so101.register()` inside `build()`:
+Copy `so101_table.py`. The one SO-101-specific step is calling `isaaclab_so101.register()` inside `build()`:
 it imports Isaac Lab, so it has to run after the simulation app starts.
 
 ## Arena version

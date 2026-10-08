@@ -1,4 +1,4 @@
-"""SO-101 on a table with a cube to lift: a minimal Arena environment for the arena_so101 embodiments.
+"""SO-101 on a table with a cube to lift: a minimal Arena environment for the isaaclab_so101 embodiments.
 
 Arena has no plugin discovery, so Isaac Lab's scripts load this class by path, through Arena's callback:
 
@@ -38,7 +38,7 @@ class SO101TableEnvironment(ArenaEnvironmentFactory[SO101TableEnvironmentCfg]):
     _legacy_argparse_cfg_type = SO101TableEnvironmentCfg
 
     def build(self, cfg: SO101TableEnvironmentCfg):
-        import arena_so101
+        import isaaclab_so101
         from isaaclab_arena.environments.isaaclab_arena_environment import IsaacLabArenaEnvironment
         from isaaclab_arena.scene.scene import Scene
         from isaaclab_arena.tasks.lift_object_task import LiftObjectTaskRL
@@ -46,7 +46,7 @@ class SO101TableEnvironment(ArenaEnvironmentFactory[SO101TableEnvironmentCfg]):
 
         # Registers the so101_* embodiments and devices. It imports Isaac Lab, so it must run
         # after the simulation app starts, which is why it lives here and not at module level.
-        arena_so101.register()
+        isaaclab_so101.register()
 
         table = self.asset_registry.get_asset_by_name("maple_table_robolab")()
         table.set_initial_pose(Pose(position_xyz=TABLE_POS))

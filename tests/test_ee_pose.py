@@ -6,8 +6,8 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from arena_so101 import CUROBO_ROBOT_YML, HOME_JOINT_POS, JOINT_LIMITS_RAD, PAN_AXIS_XY, TCP_OFFSET
-from arena_so101.ee_pose import HOME_NATURAL_POSE, natural_ee_quat_xyzw, pan_reach_from_xy, xy_from_pan_reach
+from isaaclab_so101 import CUROBO_ROBOT_YML, HOME_JOINT_POS, JOINT_LIMITS_RAD, PAN_AXIS_XY, TCP_OFFSET
+from isaaclab_so101.ee_pose import HOME_NATURAL_POSE, natural_ee_quat_xyzw, pan_reach_from_xy, xy_from_pan_reach
 
 np = pytest.importorskip("numpy")
 
@@ -106,7 +106,7 @@ def _natural_from_urdf(joint_pos: dict[str, float], *, on_axis: bool = False):
 
 
 def test_natural_ik_inverts_the_urdf_forward_kinematics():
-    from arena_so101.ee_pose import natural_ik
+    from isaaclab_so101.ee_pose import natural_ik
 
     rng = random.Random(0)
     names = ("Rotation", "Pitch", "Elbow", "Wrist_Pitch", "Wrist_Roll")
@@ -140,7 +140,7 @@ def test_natural_ik_inverts_the_urdf_forward_kinematics():
 
 
 def test_natural_ik_refuses_what_the_arm_cannot_do():
-    from arena_so101.ee_pose import natural_ik
+    from isaaclab_so101.ee_pose import natural_ik
 
     x, y, z, tilt, roll = HOME_NATURAL_POSE
     assert natural_ik(x, y - 0.3, z, tilt, roll) is None  # 50 cm out: past the upper arm plus forearm

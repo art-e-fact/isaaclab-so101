@@ -6,8 +6,8 @@ import sys
 
 import pytest
 
-import arena_so101
-from arena_so101 import (
+import isaaclab_so101
+from isaaclab_so101 import (
     HOME_JOINT_POS,
     JAW_CLOSE_RAD,
     JAW_OPEN_RAD,
@@ -17,7 +17,7 @@ from arena_so101 import (
 
 
 def test_import_is_pure_python():
-    code = "import sys, arena_so101; assert not {'torch', 'isaaclab'} & set(sys.modules), sys.modules.keys()"
+    code = "import sys, isaaclab_so101; assert not {'torch', 'isaaclab'} & set(sys.modules), sys.modules.keys()"
     subprocess.run([sys.executable, "-c", code], check=True)
 
 
@@ -38,12 +38,12 @@ def test_home_pose_is_read_only():
 
 
 def test_asset_paths_exist():
-    assert arena_so101.USD_PATH.is_file()
+    assert isaaclab_so101.USD_PATH.is_file()
 
 
 def test_mapping_round_trip_and_endpoints():
     torch = pytest.importorskip("torch")
-    from arena_so101.mapping import motor_norm_to_sim_radians, sim_radians_to_motor_norm
+    from isaaclab_so101.mapping import motor_norm_to_sim_radians, sim_radians_to_motor_norm
 
     lows = torch.tensor([-100.0] * 5 + [0.0])
     highs = torch.tensor([100.0] * 5 + [100.0])

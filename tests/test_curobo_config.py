@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from arena_so101 import JAW_OPEN_RAD, TCP_OFFSET
-from arena_so101.generate_curobo_config import add_tcp_link, patch_so101_robot_yaml
+from isaaclab_so101 import JAW_OPEN_RAD, TCP_OFFSET
+from isaaclab_so101.generate_curobo_config import add_tcp_link, patch_so101_robot_yaml
 
 URDF = """<robot name="so101"><link name="base"/><link name="gripper"/>
 <joint name="Wrist_Roll" type="revolute"><parent link="base"/><child link="gripper"/></joint></robot>"""
@@ -42,13 +42,13 @@ def test_patch_plans_for_the_tcp_and_attaches_at_the_ee_link(tmp_path):
     assert kin["tool_frames"] == ["tcp"]
     assert kin["extra_links"]["attached_object"]["parent_link_name"] == "tcp"  # cuRobo attaches through tool_frames[0]
     assert "attached_object" in kin["self_collision_ignore"]["gripper"]
-    assert data["arena_so101"]["ee_link_name"] == "tcp"
-    assert data["arena_so101"]["hand_link_names"] == ["gripper"]
+    assert data["isaaclab_so101"]["ee_link_name"] == "tcp"
+    assert data["isaaclab_so101"]["hand_link_names"] == ["gripper"]
 
 
 def test_patch_writes_paths_relative_to_the_yaml_and_robot_cfg_resolves_them(tmp_path):
     yaml = pytest.importorskip("yaml")
-    from arena_so101.curobo import robot_cfg
+    from isaaclab_so101.curobo import robot_cfg
 
     raw = tmp_path / "raw.yml"
     raw.write_text(yaml.safe_dump({"kinematics": {}}))
@@ -66,8 +66,8 @@ def test_patch_writes_paths_relative_to_the_yaml_and_robot_cfg_resolves_them(tmp
 
 def test_shipped_config_plans_for_the_tcp_of_the_shipped_urdf():
     pytest.importorskip("yaml")
-    from arena_so101 import CUROBO_ROBOT_YML
-    from arena_so101.curobo import robot_cfg
+    from isaaclab_so101 import CUROBO_ROBOT_YML
+    from isaaclab_so101.curobo import robot_cfg
 
     kin = robot_cfg()["robot_cfg"]["kinematics"]
     urdf = Path(kin["urdf_path"])

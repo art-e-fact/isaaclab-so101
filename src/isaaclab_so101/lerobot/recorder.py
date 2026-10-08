@@ -15,7 +15,7 @@ from typing import Any, Self
 
 import numpy as np
 
-from arena_so101.mapping import SIM_JOINT_NAMES
+from isaaclab_so101.mapping import SIM_JOINT_NAMES
 
 STATE_KEY = "observation.state"
 ACTION_KEY = "action"
@@ -98,7 +98,7 @@ class SO101LeRobotRecorder:
             from lerobot.datasets import LeRobotDataset, VideoEncodingManager
         except ImportError as exc:
             raise ImportError(
-                "SO101LeRobotRecorder needs lerobot[dataset]>=0.6.1,<0.7 (the arena-so101 `lerobot` extra; "
+                "SO101LeRobotRecorder needs lerobot[dataset]>=0.6.1,<0.7 (the isaaclab-so101 `lerobot` extra; "
                 "the `leader` extra alone does not include it)."
             ) from exc
 

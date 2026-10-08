@@ -191,37 +191,6 @@ wheels = [
 ]
 
 [[package]]
-name = "arena-so101"
-version = "0.1.0"
-source = { editable = "../../" }
-
-[package.metadata]
-requires-dist = [
-    { name = "lerobot", extras = ["dataset"], marker = "extra == 'lerobot'", specifier = ">=0.6.1,<0.7" },
-    { name = "lerobot", extras = ["feetech"], marker = "extra == 'leader'", specifier = ">=0.6.1,<0.7" },
-    { name = "numpy", marker = "extra == 'dev'" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "ruff", marker = "extra == 'dev'" },
-    { name = "torch", marker = "extra == 'dev'" },
-]
-provides-extras = ["lerobot", "leader", "dev"]
-
-[[package]]
-name = "arena-so101-isaaclab-examples"
-version = "0.0.0"
-source = { editable = "." }
-dependencies = [
-    { name = "arena-so101", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "isaaclab", extra = ["all", "isaacsim", "video"], marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "arena-so101", editable = "../../" },
-    { name = "isaaclab", extras = ["isaacsim", "all", "video"], specifier = "==3.0.0rc1" },
-]
-
-[[package]]
 name = "asteval"
 version = "1.0.6"
 source = { registry = "https://pypi.org/simple" }
@@ -1285,6 +1254,42 @@ isaacsim = [
 ]
 video = [
     { name = "moviepy", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+]
+
+[[package]]
+name = "isaaclab-so101"
+version = "0.1.0"
+source = { editable = "../../" }
+
+[package.metadata]
+requires-dist = [
+    { name = "lerobot", extras = ["dataset"], marker = "extra == 'lerobot'", specifier = ">=0.6.1,<0.7" },
+    { name = "lerobot", extras = ["feetech"], marker = "extra == 'leader'", specifier = ">=0.6.1,<0.7" },
+]
+provides-extras = ["lerobot", "leader"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "numpy" },
+    { name = "pytest" },
+    { name = "pyyaml" },
+    { name = "ruff" },
+    { name = "torch" },
+]
+
+[[package]]
+name = "isaaclab-so101-examples"
+version = "0.0.0"
+source = { editable = "." }
+dependencies = [
+    { name = "isaaclab", extra = ["all", "isaacsim", "video"], marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "isaaclab-so101", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "isaaclab", extras = ["isaacsim", "all", "video"], specifier = "==3.0.0rc1" },
+    { name = "isaaclab-so101", editable = "../../" },
 ]
 
 [[package]]

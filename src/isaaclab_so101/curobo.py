@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from arena_so101.constants import CUROBO_ROBOT_YML
+from isaaclab_so101.constants import CUROBO_ROBOT_YML
 
 
 def robot_cfg(path: str | Path = CUROBO_ROBOT_YML) -> dict[str, Any]:

@@ -44,7 +44,7 @@ TCP_OFFSET = (-0.007, 0.0, -0.102)
 
 # The shoulder-pan axis in the base frame (the URDF's ``Rotation`` joint origin): the arm's vertical plane turns
 # about it, 3 cm from the base origin. The wrist-roll axis passes through it (0.2 mm off), so a gripper facing
-# away from this point along the arm is one the 5-DoF arm can hold; see ``arena_so101.ee_pose``.
+# away from this point along the arm is one the 5-DoF arm can hold; see ``isaaclab_so101.ee_pose``.
 PAN_AXIS_XY = (0.0207909, -0.0230745)
 
 # Jaw geometry for the gap between the tips: the moving tip at Jaw = 0 and the fixed tip, relative to the Jaw
@@ -70,6 +70,6 @@ _DATA_DIR = Path(__file__).resolve().parent / "embodiments" / "data"
 # Robot USD shipped with the package.
 USD_PATH = _DATA_DIR / "SO-ARM101-USD.usd"
 
-# cuRobo robot config, shipped (regenerate with ``python -m arena_so101.generate_curobo_config``). Its
-# ``urdf_path`` is relative to the file: load it with ``arena_so101.curobo.robot_cfg``.
+# cuRobo robot config, shipped (regenerate with ``python -m isaaclab_so101.generate_curobo_config``). Its
+# ``urdf_path`` is relative to the file: load it with ``isaaclab_so101.curobo.robot_cfg``.
 CUROBO_ROBOT_YML = _DATA_DIR / "curobo" / "so101.yml"

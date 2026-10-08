@@ -2,7 +2,7 @@
 
 Like ``isaaclab_assets``, import this after the simulation app starts::
 
-    from arena_so101.assets import SO101_CFG
+    from isaaclab_so101.assets import SO101_CFG
 
     robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
@@ -23,7 +23,7 @@ from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.sensors import CameraCfg
 from isaaclab.utils.math import quat_from_euler_xyz
 
-from arena_so101.constants import HOME_JOINT_POS, USD_PATH
+from isaaclab_so101.constants import HOME_JOINT_POS, USD_PATH
 
 
 def _quat_xyzw_from_euler_deg(roll: float, pitch: float, yaw: float) -> tuple[float, float, float, float]:

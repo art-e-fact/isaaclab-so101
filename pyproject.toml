@@ -3,21 +3,41 @@ requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "arena-so101"
+name = "isaaclab-so101"
 version = "0.1.0"
-description = "SO-101 embodiment and leader teleop for Isaac Lab Arena"
-license = "MIT OR Apache-2.0"
-license-files = ["LICENSE-*"]
+description = "SO-101 robot arm for Isaac Lab and Isaac Lab Arena: robot configs, embodiments, teleop devices, LeRobot recording, cuRobo config"
+readme = "README.md"
+# The code is MIT OR Apache-2.0; the NVIDIA SO-101 USD it ships is Apache-2.0 only (see NOTICE).
+license = "(MIT OR Apache-2.0) AND Apache-2.0"
+license-files = ["LICENSE-*", "NOTICE"]
+keywords = ["isaac-lab", "isaac-sim", "isaaclab-arena", "so-101", "so-arm101", "lerobot", "curobo", "robotics", "teleoperation", "simulation"]
+# No License :: classifiers: setuptools rejects them next to a license expression.
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 # Isaac Lab Arena and lerobot 0.6 both require Python 3.12.
 requires-python = ">=3.12"
 # Isaac Sim, Isaac Lab and Arena (and their torch/numpy) come from the environment.
 dependencies = []
 
 [project.optional-dependencies]
-# LeRobot dataset recorder (arena_so101.lerobot).
+# LeRobot dataset recorder (isaaclab_so101.lerobot).
 lerobot = ["lerobot[dataset]>=0.6.1,<0.7"]
 # Physical SO-101 leader arm teleop (so101_leader device).
 leader = ["lerobot[feetech]>=0.6.1,<0.7"]
+
+[project.urls]
+Source = "https://github.com/art-e-fact/isaaclab-so101"
+Issues = "https://github.com/art-e-fact/isaaclab-so101/issues"
+Changelog = "https://github.com/art-e-fact/isaaclab-so101/blob/main/CHANGELOG.md"
+
+# PEP 735 groups are not published, unlike extras. Install with `uv pip install --group dev`.
+[dependency-groups]
 # Lint and tests. The tests stub Isaac Sim / Lab / Arena; torch and numpy are the real ones.
 dev = ["pytest", "ruff", "torch", "numpy", "pyyaml"]
 
@@ -25,7 +45,7 @@ dev = ["pytest", "ruff", "torch", "numpy", "pyyaml"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-arena_so101 = [
+isaaclab_so101 = [
     "embodiments/data/*.usd",
     "embodiments/data/*.usda",
     "embodiments/data/curobo/*.yml",

@@ -1,10 +1,10 @@
 [project]
-name = "arena-so101-isaaclab-examples"
+name = "isaaclab-so101-examples"
 version = "0.0.0"
 description = "Run the SO-101 in plain Isaac Lab (no Arena), installed by uv alone."
 requires-python = "==3.12.*"
 dependencies = [
-    "arena-so101",
+    "isaaclab-so101",
     "isaaclab[isaacsim,all,video]==3.0.0rc1",  # video: `isaaclab play --video` records clips headless
 ]
 
@@ -50,7 +50,7 @@ url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
 [tool.uv.sources]
-arena-so101 = { path = "../..", editable = true }
+isaaclab-so101 = { path = "../..", editable = true }
 mujoco-usd-converter = { index = "pypi" }
 torch = { index = "pytorch-cu128" }
 torchvision = { index = "pytorch-cu128" }

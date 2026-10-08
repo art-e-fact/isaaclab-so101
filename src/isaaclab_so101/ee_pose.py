@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import math
 
-from arena_so101.constants import JOINT_LIMITS_RAD, PAN_AXIS_XY
+from isaaclab_so101.constants import JOINT_LIMITS_RAD, PAN_AXIS_XY
 
 # The TCP at HOME_JOINT_POS in these coordinates: forward kinematics of the shipped URDF (tests/test_ee_pose.py
 # recomputes it). The gripper leans 42° forward from straight down; the jaws open across the arm (roll ≈ -90°,

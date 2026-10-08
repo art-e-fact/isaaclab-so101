@@ -22,8 +22,8 @@ from isaaclab.visualizers import VisualizerCfg
 from isaaclab_tasks.core.reach.config.franka.agents.rsl_rl_ppo_cfg import FrankaReachPPORunnerCfg
 from isaaclab_tasks.core.reach.reach_env_cfg import ReachEnvCfg
 
-from arena_so101 import ARM_JOINT_NAMES
-from arena_so101.assets import SO101_CFG
+from isaaclab_so101 import ARM_JOINT_NAMES
+from isaaclab_so101.assets import SO101_CFG
 
 
 @configclass

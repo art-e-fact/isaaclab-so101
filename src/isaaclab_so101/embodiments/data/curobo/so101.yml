@@ -352,7 +352,7 @@ robot_cfg:
     urdf_path: urdf/SO-ARM101-USD.urdf
     use_external_assets: false
     use_global_cumul: true
-arena_so101:
+isaaclab_so101:
   ee_link_name: tcp
   gripper_joint_names:
   - Jaw

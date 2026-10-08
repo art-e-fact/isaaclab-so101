@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# arena_so101 modules that import Isaac Sim / Isaac Lab / Arena at module level.
+# isaaclab_so101 modules that import Isaac Sim / Isaac Lab / Arena at module level.
 # ``embodiments`` is one because its __init__ imports ``embodiments.so101``.
 _ISAAC_DEPENDENT = (
     "assets",
@@ -57,14 +57,14 @@ def _reset_joints_by_offset(env, env_ids, position_range, velocity_range, asset_
 
 @pytest.fixture
 def isaac(monkeypatch):
-    """Import the Isaac-dependent arena_so101 modules against stubbed Isaac Sim / Lab / Arena.
+    """Import the Isaac-dependent isaaclab_so101 modules against stubbed Isaac Sim / Lab / Arena.
 
     Returns a namespace of the freshly imported modules, by their last name (``isaac.so101``).
-    Everything, including the ``arena_so101.<module>`` entries in ``sys.modules`` and on the
+    Everything, including the ``isaaclab_so101.<module>`` entries in ``sys.modules`` and on the
     package, is restored afterwards.
     """
     pytest.importorskip("torch")
-    import arena_so101  # noqa: F401  (pure; loaded first so the submodule attributes set on it get restored)
+    import isaaclab_so101  # noqa: F401  (pure; loaded first so the submodule attributes set on it get restored)
 
     class DeviceBase:
         def __init__(self, retargeters=None):
@@ -132,7 +132,7 @@ def isaac(monkeypatch):
         "isaaclab_arena.embodiments.common.arm_mode": {},
         "isaaclab_arena.utils.pose": {},
     }
-    # carb.input is unavailable while the arena_so101 modules import, as in Isaac Sim before Kit loads its input
+    # carb.input is unavailable while the isaaclab_so101 modules import, as in Isaac Sim before Kit loads its input
     # plugin: a device must look GamepadInput up when constructed, not at import.
     carb = _module("carb")
     carb_loaded = False
@@ -156,7 +156,7 @@ def isaac(monkeypatch):
         monkeypatch.setitem(sys.modules, name, mod)
 
     for short in _ISAAC_DEPENDENT:
-        full = f"arena_so101.{short}"
+        full = f"isaaclab_so101.{short}"
         # setitem/setattr first so monkeypatch restores the pre-test state (absent or not), then clear.
         monkeypatch.setitem(sys.modules, full, None)
         del sys.modules[full]
@@ -166,6 +166,8 @@ def isaac(monkeypatch):
             monkeypatch.setattr(parent, attr, None, raising=False)
             delattr(parent, attr)
 
-    modules = {short.rpartition(".")[2]: importlib.import_module(f"arena_so101.{short}") for short in _ISAAC_DEPENDENT}
+    modules = {
+        short.rpartition(".")[2]: importlib.import_module(f"isaaclab_so101.{short}") for short in _ISAAC_DEPENDENT
+    }
     carb_loaded = True  # noqa: F841  (read by _carb_getattr)
     return SimpleNamespace(**modules)

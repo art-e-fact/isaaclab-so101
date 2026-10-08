@@ -6,7 +6,7 @@ from types import ModuleType, SimpleNamespace
 
 import numpy as np
 import pytest
-from arena_so101.lerobot.recorder import (
+from isaaclab_so101.lerobot.recorder import (
     ACTION_KEY,
     CAMERA_FEATURES,
     STATE_KEY,
