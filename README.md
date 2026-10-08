@@ -321,6 +321,24 @@ uv pip install --torch-backend cpu --group dev -e .  # -e ".[lerobot,leader]" al
 
 CI runs both variants on every pull request. Nothing in CI starts Isaac Sim.
 
+### Showcase
+
+[`showcase/`](https://github.com/art-e-fact/isaaclab-so101/tree/main/showcase) holds slower, demonstrative tests
+that leave videos and pictures for a person to look over, with a JUnit case per thing they check: the natural
+gamepad layout played one input at a time in Arena (`test_natural_gamepad.py`), each joint swept in plain Isaac Lab
+(`test_joint_sweep.py`), and the reach envelope of the natural layout drawn from `natural_ik` alone
+(`test_reachability.py`). `pytest` does not collect them. Each simulation runs in a child process in the
+environment it needs (`examples/arena/setup.sh`, or uv in `examples/isaaclab`), so the venv running pytest only
+needs this package, pytest and matplotlib (`uv pip install --group showcase -e .`; Arena's venv has all three):
+
+```bash
+SO101_SHOWCASE_DIR=/tmp/so101-showcase python -m pytest -s showcase/test_natural_gamepad.py
+```
+
+[`artefacts.yaml`](https://github.com/art-e-fact/isaaclab-so101/blob/main/artefacts.yaml) runs each as an
+[Artefacts](https://docs.artefacts.com/) job (`artefacts run natural_gamepad`), which uploads the videos, the plots
+and the verdict to the dashboard.
+
 ### Releasing
 
 [`publish.yml`](https://github.com/art-e-fact/isaaclab-so101/blob/main/.github/workflows/publish.yml) builds the wheel

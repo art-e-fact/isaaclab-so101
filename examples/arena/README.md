@@ -18,6 +18,11 @@ python smoke_test.py       # headless: builds the env with each embodiment, step
 Isaac Sim asks you to accept its EULA on first start. `OMNI_KIT_ACCEPT_EULA=YES` accepts it without the prompt.
 `source ./setup.sh --leader` adds the `leader` extra (lerobot) for a physical leader arm; `--force` re-syncs.
 
+`natural_tour.py --out DIR` plays the [natural gamepad layout](../../README.md#natural-gamepad-layout-so101_abs_ik--so101_gamepad)
+on a scripted gamepad, headless, and records the embodiment's two cameras, a plot of the commanded and measured TCP
+and the numbers behind it; `showcase/test_natural_gamepad.py` turns them into a verdict (see
+[Showcase](../../README.md#showcase)).
+
 ## Teleoperate
 
 Arena environments run through Isaac Lab's own scripts: `--external_callback` names a function that registers the
