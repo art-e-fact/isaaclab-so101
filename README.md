@@ -1,11 +1,15 @@
 # SO-101 for Isaac Lab and IsaacLab-Arena
 
-:construction: Under development. Tested against [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena) `main`
-at aa36f19 (2026-09-23), pinned in [`examples/arena/setup.sh`](examples/arena/setup.sh).
+🚧 Under development. Tested against [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena) `main` at aa36f19
+(2026-09-23), pinned in
+[`examples/arena/setup.sh`](https://github.com/art-e-fact/isaaclab-so101/blob/main/examples/arena/setup.sh). All tested
+combinations are under [Compatibility](#compatibility).
 
 SO-101 follower embodiment (and optional leader-arm helpers) for
 [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena), and the robot configs on their own for plain
 [Isaac Lab](#isaac-lab-without-arena).
+
+A community package, not affiliated with or endorsed by NVIDIA.
 
 Environments using this embodiment:
 - [Arena Shape Sorting](https://github.com/art-e-fact/arena-shape-sorting/)
@@ -21,14 +25,16 @@ Planned features:
 First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html),
 or only [Isaac Lab](https://isaac-sim.github.io/IsaacLab/) for the [Isaac Lab configs](#isaac-lab-without-arena).
 
-Requires Python 3.12 (same as Arena). The package is not on PyPI yet, so install from git:
+Requires Python 3.12 (same as Arena).
 
 ```bash
-uv add "isaaclab-so101 @ git+https://github.com/art-e-fact/isaaclab-so101.git"
+uv add isaaclab-so101
 # optional extras: `lerobot` (LeRobot dataset recorder), `leader` (physical leader arm teleop)
-uv add "isaaclab-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
+uv add "isaaclab-so101[lerobot,leader]"
 # or with pip, e.g. inside the Isaac Sim Python
-python -m pip install "isaaclab-so101[lerobot,leader] @ git+https://github.com/art-e-fact/isaaclab-so101.git"
+python -m pip install "isaaclab-so101[lerobot,leader]"
+# unreleased changes, from git
+uv add "isaaclab-so101 @ git+https://github.com/art-e-fact/isaaclab-so101.git"
 ```
 
 The base package has no Python dependencies; Isaac Sim, Isaac Lab and Arena come from your
@@ -55,10 +61,12 @@ from isaaclab_arena.assets.registries import AssetRegistry
 embodiment = AssetRegistry().get_asset_by_name("so101_abs_joint")(enable_cameras=True)
 ```
 
-Arena finds external environments by path (`--external_environment_class_path module:Class`), and the
-environment registers the SO-101 inside its `build()`. [`examples/arena/`](examples/arena/) has a minimal one that
+Arena finds external environments by path (`--external_environment_class_path module:Class`), and the environment
+registers the SO-101 inside its `build()`.
+[`examples/arena/`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/arena) has a minimal one that
 teleoperates the arm in Arena's lift task; its `setup.sh` clones Arena at the tested commit and installs Isaac Sim,
-Isaac Lab and Arena from Arena's own uv lock. [arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/blob/25ea6bfea43a5134570e924fb3cdacb663f59472/arena_envs/src/shape_sorting/shape_sorting_env.py#L131)
+Isaac Lab and Arena from Arena's own uv lock.
+[arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/blob/25ea6bfea43a5134570e924fb3cdacb663f59472/arena_envs/src/shape_sorting/shape_sorting_env.py#L131)
 is a full one.
 
 See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
@@ -112,9 +120,10 @@ robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 ```
 
 The arm faces +X: `init_state` yaws its base 90°, so commands sampled in the base frame reach forward along -Y.
-[`examples/isaaclab/`](examples/isaaclab/) sweeps the joints with the scene API and trains the arm in Isaac Lab's
-reach task with Isaac Lab's own `isaaclab train`. Tested with Isaac Lab 3.0.0rc1 on PhysX. Newton can't load the
-USD yet: it carries its own world joint, and Newton won't merge it with the one `fix_root_link` adds.
+[`examples/isaaclab/`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/isaaclab) sweeps the joints with
+the scene API and trains the arm in Isaac Lab's reach task with Isaac Lab's own `isaaclab train`. Tested with Isaac Lab
+3.0.0rc1 on PhysX. Newton can't load the USD yet: it carries its own world joint, and Newton won't merge it with the one
+`fix_root_link` adds.
 
 ## Embodiments
 
@@ -255,7 +264,7 @@ axis. Move the fingertips sideways and the gripper turns with the arm by itself,
 follows the arm: you only lean it and turn it. Every target is one the arm can take, so the IK settles instead of
 fighting an impossible orientation.
 
-![Top view: the gripper faces out along the arm and turns by itself when moved sideways. Side view: z, tilt and roll.](docs/natural_control.svg)
+![Top view: the gripper faces out along the arm and turns by itself when moved sideways. Side view: z, tilt and roll.](https://raw.githubusercontent.com/art-e-fact/isaaclab-so101/main/docs/natural_control.svg)
 
 In numbers: `R = Rz(azimuth) · Ry(tilt) · Rz(roll)`, where the azimuth is the direction of the fingertips seen from
 the pan axis (`PAN_AXIS_XY`). `isaaclab_so101.ee_pose.natural_ee_quat_xyzw(x, y, tilt, roll)` returns it as a
@@ -285,6 +294,20 @@ Arena's `record_demos.py` when the env wires `--teleop_device so101_leader`.
 `num_read_retries` and `max_consecutive_read_failures`. A failed bus read holds the last pose
 instead of ending the session; it raises after `max_consecutive_read_failures` (default 10) in a row.
 
+## Compatibility
+
+Tested combinations. Arena has no releases yet, so its rows name commits.
+
+| Arena | Isaac Lab | Isaac Sim | lerobot | cuRobo | Checked by |
+|-------|-----------|-----------|---------|--------|------------|
+| none | 3.0.0rc1 | 6.1.0.0 | | | [`examples/isaaclab`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/isaaclab): joint sweep and SO101-Reach training, PhysX |
+| `main` aa36f19 | bb0c8e1, Arena's submodule | 6.1.0.0 | | | [`examples/arena`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/arena) smoke test |
+| aa36f19 | bb0c8e1 | 6.1.0.0 | 0.6.1 | 0.8, at 8e734f3 | [arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/): headless policy runs and dataset generation |
+
+cuRobo 0.7.7, which Isaac Lab's `isaaclab_mimic` and Arena's reachability check pin, cannot load the shipped config
+(see [cuRobo planning assets](#curobo-planning-assets)). Newton cannot load the USD yet
+(see [Isaac Lab](#isaac-lab-without-arena)).
+
 ## Development
 
 The tests run without Isaac Sim: Isaac-dependent modules are imported against stubs (the `isaac`
@@ -292,29 +315,52 @@ fixture in `tests/conftest.py`), with real `torch` and `numpy`.
 
 ```bash
 uv venv --python 3.12
-uv pip install --torch-backend cpu -e ".[dev]"  # ".[dev,lerobot,leader]" also runs the recorder test
+uv pip install --torch-backend cpu --group dev -e .  # -e ".[lerobot,leader]" also runs the recorder test
 .venv/bin/pytest && .venv/bin/ruff check
 ```
 
 CI runs both variants on every pull request. Nothing in CI starts Isaac Sim.
 
+### Releasing
+
+[`publish.yml`](https://github.com/art-e-fact/isaaclab-so101/blob/main/.github/workflows/publish.yml) builds the wheel
+and sdist on every pull request, checks them with `twine check --strict`, and imports the wheel in a clean venv.
+Publishing a GitHub release uploads them to PyPI; running the workflow by hand uploads them to TestPyPI. Both use
+Trusted Publishing, so no token is stored. A TestPyPI run uploads `<version>.dev<run number>`, because neither index
+takes the same filename twice.
+
+One-time setup:
+
+1. On [PyPI](https://pypi.org/manage/account/publishing/) and [TestPyPI](https://test.pypi.org/manage/account/publishing/),
+   add a pending publisher: owner `art-e-fact`, repository `isaaclab-so101`, workflow `publish.yml`, environment
+   `pypi` or `testpypi`.
+2. In the repository settings, create the `pypi` environment with required reviewers, and limit its deployments to
+   `v*` tags. Otherwise anyone who can push a branch can run the upload.
+
+To release:
+
+1. Set `version` in `pyproject.toml`. In `CHANGELOG.md`, move the changes under a heading for that version and
+   replace `Unreleased` with the date.
+2. Merge, then publish a GitHub release tagged `v<version>`. The workflow refuses a tag that doesn't match.
+
 ## Acknowledgments
 
-We used the SO-101 USD model from the [Sim-to-Real-SO-101-Workshop](https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/index.html).
+We used the SO-101 USD model from the [Sim-to-Real-SO-101-Workshop](https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/index.html),
+which is based on [TheRobotStudio's SO-ARM100](https://github.com/TheRobotStudio/SO-ARM100) SO-101 model.
 
 ## License
 
 Licensed under either of
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
-- MIT license ([LICENSE-MIT](LICENSE-MIT))
+- Apache License, Version 2.0 ([LICENSE-APACHE](https://github.com/art-e-fact/isaaclab-so101/blob/main/LICENSE-APACHE))
+- MIT license ([LICENSE-MIT](https://github.com/art-e-fact/isaaclab-so101/blob/main/LICENSE-MIT))
 
 at your option.
 
-Exception: `src/isaaclab_so101/embodiments/data/SO-ARM101-USD.usd` is Copyright NVIDIA
-Corporation & Affiliates, from the
-[Sim-to-Real-SO-101-Workshop](https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop),
-and is licensed under Apache-2.0 only.
+Exception: `src/isaaclab_so101/embodiments/data/SO-ARM101-USD.usd` is Copyright NVIDIA Corporation & Affiliates, from
+the [Sim-to-Real-SO-101-Workshop](https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop), and is licensed under
+Apache-2.0 only. [NOTICE](https://github.com/art-e-fact/isaaclab-so101/blob/main/NOTICE) lists it with the files
+generated from it, and the wheel carries NOTICE and both licenses.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for
 inclusion in this work by you, as defined in the Apache-2.0 license, shall be dual

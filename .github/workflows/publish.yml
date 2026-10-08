@@ -1,0 +1,96 @@
+name: Publish
+
+# Builds and checks the wheel and sdist on every pull request and push to main. A published GitHub release uploads
+# them to PyPI; running the workflow by hand uploads them to TestPyPI. Both use Trusted Publishing, so no token is
+# stored: PyPI trusts this workflow file in this repository, through the `pypi` or `testpypi` environment.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0 (no moving major tag)
+        with:
+          python-version: "3.12"
+          # A pull request could otherwise seed a cache that a publishing run restores.
+          enable-cache: false
+      - name: The release tag matches the version
+        if: github.event_name == 'release'
+        run: test "${GITHUB_REF_NAME}" = "v$(uv version --short)"
+      # TestPyPI, like PyPI, never takes the same filename twice, so each manual run uploads its own dev version.
+      - name: Stamp a dev version for TestPyPI
+        if: github.event_name == 'workflow_dispatch'
+        run: uv version --frozen "$(uv version --short).dev${GITHUB_RUN_NUMBER}"
+      - run: uv build
+      - run: uvx twine check --strict dist/*
+      # CI tests an editable install, which reads data files straight from src/. Only the wheel shows a file that
+      # the package-data globs miss.
+      - name: Import the wheel in a clean venv
+        run: |
+          uv venv /tmp/wheel-venv
+          uv pip install --python /tmp/wheel-venv dist/*.whl
+          cd /tmp && /tmp/wheel-venv/bin/python - <<'PY'
+          import importlib.metadata as md
+          from pathlib import Path
+
+          import isaaclab_so101
+
+          usd, yml = Path(isaaclab_so101.USD_PATH), Path(isaaclab_so101.CUROBO_ROBOT_YML)
+          for f in (usd, usd.with_name("curobo_sphere_colliders.usda"), yml):
+              assert f.is_file(), f
+          assert list((yml.parent / "urdf").glob("*.urdf")), "no cuRobo URDF"
+          licenses = {f.name for f in md.files("isaaclab-so101") if "licenses" in f.parts}
+          assert licenses == {"LICENSE-APACHE", "LICENSE-MIT", "NOTICE"}, licenses
+          print("wheel OK:", md.version("isaaclab-so101"))
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+
+  pypi:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/isaaclab-so101/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+
+  testpypi:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/isaaclab-so101/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true  # a re-run of the same run rebuilds the same dev version
