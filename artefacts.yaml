@@ -1,0 +1,83 @@
+project: artefacts/isaaclab-so101
+
+version: 0.1.0
+
+# Demonstrative jobs, one per showcase/test_*.py: each leaves videos or pictures for a person to look over, with a
+# JUnit case per thing it checks. They boot Isaac Sim for minutes, so `pytest` alone never collects them
+# (pyproject's testpaths is tests/). Run from the repo root with a venv active that has isaaclab_so101, pytest and
+# matplotlib, after `artefacts config add artefacts/isaaclab-so101` once:
+#
+#   source examples/arena/setup.sh     # Arena's venv has all three
+#   artefacts run natural_gamepad      # or joint_sweep, reachability
+#
+# Each module starts its simulation in a child process in the environment it needs (examples/arena/setup.sh, or uv
+# in examples/isaaclab), so the active venv only runs pytest. On a desktop, run under a memory cap:
+# `systemd-run --user --scope -p MemoryMax=40G artefacts run ...` (an Isaac Sim scene can take the machine down).
+#
+# Artefacts runs `run:` under /bin/sh, ignores exit codes, and passes a run that leaves no tests_junit.xml, so when
+# pytest cannot start, the command writes an error in its place. `2>&1` is required: the client reads a command's
+# stdout to the end before its stderr, so a command that fills the stderr pipe first blocks forever.
+#
+# `metrics:` is read after the run from a fixed path relative to the repo root (outputs/ is gitignored), so the
+# command copies the metrics.json the test wrote into the upload dir there. `package` and `simulator` are
+# placeholders the config validator requires: a local run builds nothing, and the tests start Isaac Sim themselves.
+
+jobs:
+  natural_gamepad:
+    type: test
+    timeout: 25 # minutes; about 5 once Isaac Sim's shader cache is warm
+    package:
+      docker:
+        build:
+          dockerfile: empty
+    runtime:
+      framework: other
+      simulator: isaac_sim
+    scenarios:
+      settings:
+        - name: tour
+          metrics: outputs/showcase_metrics.json
+          params: {TEST: test_natural_gamepad.py}
+          # The one command, shared by the jobs below through the anchor: pytest on showcase/$TEST.
+          run: &run >-
+            SO101_SHOWCASE_DIR="$ARTEFACTS_SCENARIO_UPLOAD_DIR" python -m pytest -s "showcase/$TEST"
+            --junitxml="$ARTEFACTS_SCENARIO_UPLOAD_DIR/tests_junit.xml" 2>&1
+            || [ -e "$ARTEFACTS_SCENARIO_UPLOAD_DIR/tests_junit.xml" ]
+            || echo '<testsuite name="showcase" tests="1" errors="1"><testcase name="pytest"><error
+            message="pytest wrote no tests_junit.xml: is a venv with pytest active? See test_process_log.txt"/></testcase></testsuite>'
+            > "$ARTEFACTS_SCENARIO_UPLOAD_DIR/tests_junit.xml";
+            mkdir -p outputs && cp "$ARTEFACTS_SCENARIO_UPLOAD_DIR/metrics.json" outputs/showcase_metrics.json
+
+  joint_sweep:
+    type: test
+    timeout: 20 # minutes; about 3 with the cache warm. Plain Isaac Lab from examples/isaaclab, no Arena.
+    package:
+      docker:
+        build:
+          dockerfile: empty
+    runtime:
+      framework: other
+      simulator: isaac_sim
+    scenarios:
+      settings:
+        - name: sweep
+          metrics: outputs/showcase_metrics.json
+          params: {TEST: test_joint_sweep.py}
+          run: *run
+
+  reachability:
+    type: test
+    timeout: 5 # minutes; seconds. No Isaac Sim: natural_ik over a grid, drawn with matplotlib.
+    package:
+      docker:
+        build:
+          dockerfile: empty
+    runtime:
+      framework: other
+      simulator: isaac_sim
+    scenarios:
+      settings:
+        - name: map
+          metrics: outputs/showcase_metrics.json
+          params: {TEST: test_reachability.py}
+          run: *run

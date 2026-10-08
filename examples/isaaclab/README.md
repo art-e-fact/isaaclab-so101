@@ -18,6 +18,7 @@ cd examples/isaaclab
 uv sync                          # the first run downloads Isaac Sim, about 10 GB
 uv run python sweep.py           # headless: checks every joint follows its target and the arm settles home
 uv run python sweep.py --viz kit # in the Isaac Sim window, until you close it
+uv run python sweep.py --out DIR # headless, and leaves a video, a joint-angle plot and sweep.json in DIR
 ```
 
 Isaac Sim asks you to accept its EULA on first start. `OMNI_KIT_ACCEPT_EULA=YES` accepts it without the prompt.

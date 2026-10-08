@@ -10,3 +10,5 @@ logs/
 examples/arena/IsaacLab-Arena/
 # setuptools build output (uv pip install .)
 build/
+# Artefacts reads each showcase job's metrics from here (artefacts.yaml)
+outputs/
