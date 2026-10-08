@@ -326,14 +326,27 @@ CI runs both variants on every pull request. Nothing in CI starts Isaac Sim.
 [`publish.yml`](https://github.com/art-e-fact/isaaclab-so101/blob/main/.github/workflows/publish.yml) builds the wheel
 and sdist on every pull request, checks them with `twine check --strict`, and imports the wheel in a clean venv.
 Publishing a GitHub release uploads them to PyPI; running the workflow by hand uploads them to TestPyPI. Both use
-Trusted Publishing, so no token is stored. To release:
+Trusted Publishing, so no token is stored. A TestPyPI run uploads `<version>.dev<run number>`, because neither index
+takes the same filename twice.
 
-1. Set `version` in `pyproject.toml` and move the changes under a new heading in `CHANGELOG.md`.
+One-time setup:
+
+1. On [PyPI](https://pypi.org/manage/account/publishing/) and [TestPyPI](https://test.pypi.org/manage/account/publishing/),
+   add a pending publisher: owner `art-e-fact`, repository `isaaclab-so101`, workflow `publish.yml`, environment
+   `pypi` or `testpypi`.
+2. In the repository settings, create the `pypi` environment with required reviewers, and limit its deployments to
+   `v*` tags. Otherwise anyone who can push a branch can run the upload.
+
+To release:
+
+1. Set `version` in `pyproject.toml`. In `CHANGELOG.md`, move the changes under a heading for that version and
+   replace `Unreleased` with the date.
 2. Merge, then publish a GitHub release tagged `v<version>`. The workflow refuses a tag that doesn't match.
 
 ## Acknowledgments
 
-We used the SO-101 USD model from the [Sim-to-Real-SO-101-Workshop](https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/index.html).
+We used the SO-101 USD model from the [Sim-to-Real-SO-101-Workshop](https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/index.html),
+which is based on [TheRobotStudio's SO-ARM100](https://github.com/TheRobotStudio/SO-ARM100) SO-101 model.
 
 ## License
 
