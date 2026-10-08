@@ -1,0 +1,16 @@
+isaaclab-so101
+Copyright (c) 2026 Asteria Artificial Recognition Technology, LLC.
+
+The code is licensed under either of the Apache License, Version 2.0 (LICENSE-APACHE) or the MIT license
+(LICENSE-MIT), at your option.
+
+This distribution includes third-party content under its own terms:
+
+isaaclab_so101/embodiments/data/SO-ARM101-USD.usd
+    Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+    From the Sim-to-Real-SO-101-Workshop: https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop
+    Licensed under the Apache License, Version 2.0 (LICENSE-APACHE) only. Shipped unmodified.
+
+    The cuRobo URDF and robot config under isaaclab_so101/embodiments/data/curobo/ were generated from this USD
+    by isaaclab_so101.generate_curobo_config, and isaaclab_so101/embodiments/data/curobo_sphere_colliders.usda
+    references it.

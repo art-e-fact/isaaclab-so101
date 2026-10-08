@@ -1265,13 +1265,17 @@ source = { editable = "../../" }
 requires-dist = [
     { name = "lerobot", extras = ["dataset"], marker = "extra == 'lerobot'", specifier = ">=0.6.1,<0.7" },
     { name = "lerobot", extras = ["feetech"], marker = "extra == 'leader'", specifier = ">=0.6.1,<0.7" },
-    { name = "numpy", marker = "extra == 'dev'" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pyyaml", marker = "extra == 'dev'" },
-    { name = "ruff", marker = "extra == 'dev'" },
-    { name = "torch", marker = "extra == 'dev'" },
 ]
-provides-extras = ["lerobot", "leader", "dev"]
+provides-extras = ["lerobot", "leader"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "numpy" },
+    { name = "pytest" },
+    { name = "pyyaml" },
+    { name = "ruff" },
+    { name = "torch" },
+]
 
 [[package]]
 name = "isaaclab-so101-examples"
