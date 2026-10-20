@@ -1,10 +1,14 @@
 # SO-101 in Isaac Lab (no Arena)
 
-Two examples that use the robot configs from `isaaclab_so101.assets` with plain Isaac Lab:
+Two examples that use the robot configs from [`isaaclab_so101.assets`](../../README.md#isaac-lab-without-arena) with
+plain Isaac Lab:
 
-- `sweep.py` spawns the arm with Isaac Lab's scene API and moves each joint in turn.
-- `so101_reach.py` puts the arm in Isaac Lab's reach task, which Isaac Lab's own `isaaclab train` and
-  `isaaclab play` run.
+| File | Purpose |
+|------|---------|
+| [`sweep.py`](sweep.py) | Spawns the arm with Isaac Lab's scene API and moves each joint in turn |
+| [`so101_reach.py`](so101_reach.py) | Puts the arm in Isaac Lab's reach task, which Isaac Lab's own `isaaclab train` and `isaaclab play` run |
+
+## Quick start
 
 This directory is a uv project: `uv sync` installs Isaac Sim 6.1, Isaac Lab 3.0.0rc1 and isaaclab-so101 (from `../..`,
 editable). Arena is not installed.
@@ -51,5 +55,5 @@ backend, can't load the SO-101 USD yet.
 ## Isaac Lab version
 
 `pyproject.toml` pins Isaac Lab 3.0.0rc1, the newest wheel on pypi.nvidia.com. The Arena example installs
-Isaac Lab from Arena's submodule instead (see `../arena/`). The `[tool.uv]` constraints and overrides cover what
-the Isaac Lab wheel's own dependencies leave out.
+Isaac Lab from Arena's submodule instead (see [`../arena/`](../arena/README.md)). The `[tool.uv]` constraints and
+overrides cover what the Isaac Lab wheel's own dependencies leave out.
