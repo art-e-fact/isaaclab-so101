@@ -1,5 +1,7 @@
 # SO-101 for Isaac Lab and IsaacLab-Arena
 
+[![Artefacts CI: natural_gamepad](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/natural_gamepad.png)](https://app.artefacts.com/artefacts/isaaclab-so101) [![Artefacts CI: joint_sweep](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/joint_sweep.png)](https://app.artefacts.com/artefacts/isaaclab-so101) [![Artefacts CI: reachability](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/reachability.png)](https://app.artefacts.com/artefacts/isaaclab-so101)
+
 The [SO-101](https://github.com/TheRobotStudio/SO-ARM100) arm for [Isaac Lab](https://isaac-sim.github.io/IsaacLab/)
 and [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena): robot configs, Arena embodiments, teleop devices,
 LeRobot dataset recording and a cuRobo planning config.
