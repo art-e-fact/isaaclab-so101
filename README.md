@@ -1,5 +1,7 @@
 # SO-101 for Isaac Lab and IsaacLab-Arena
 
+[![Artefacts CI: natural_gamepad](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/natural_gamepad.png)](https://app.artefacts.com/artefacts/isaaclab-so101) [![Artefacts CI: joint_sweep](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/joint_sweep.png)](https://app.artefacts.com/artefacts/isaaclab-so101) [![Artefacts CI: reachability](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/reachability.png)](https://app.artefacts.com/artefacts/isaaclab-so101)
+
 🚧 Under development. Tested against [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena) `main` at aa36f19
 (2026-09-23), pinned in
 [`examples/arena/setup.sh`](https://github.com/art-e-fact/isaaclab-so101/blob/main/examples/arena/setup.sh). All tested
