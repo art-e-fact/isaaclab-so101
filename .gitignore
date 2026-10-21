@@ -12,3 +12,5 @@ examples/arena/IsaacLab-Arena/
 build/
 # Artefacts reads each showcase job's metrics from here (artefacts.yaml)
 outputs/
+# Local settings, copied from .env.example
+.env

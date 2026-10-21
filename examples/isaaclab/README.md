@@ -25,7 +25,9 @@ uv run python sweep.py --viz kit # in the Isaac Sim window, until you close it
 uv run python sweep.py --out DIR # headless, and leaves a video, a joint-angle plot and sweep.json in DIR
 ```
 
-Isaac Sim asks you to accept its EULA on first start. `OMNI_KIT_ACCEPT_EULA=YES` accepts it without the prompt.
+Isaac Sim asks you to accept its EULA on first start. `OMNI_KIT_ACCEPT_EULA=YES` accepts it without the prompt:
+copy [`.env.example`](../../.env.example) to `.env` in the repo root, set it there, and load it into your shell with
+`set -a; source ../../.env; set +a` (uv does not read `.env` on its own).
 The first `--viz kit` launch compiles shaders for several minutes with no terminal output.
 
 ## Train a reach policy
