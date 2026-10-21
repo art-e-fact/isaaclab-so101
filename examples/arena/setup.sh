@@ -17,8 +17,8 @@
 # is then yours to choose; the example is tested at ARENA_REV.
 
 _setup_main() {
-  # IsaacLab-Arena commit this example is tested against (main, 2026-09-23). See README "Arena version".
-  local ARENA_REV=aa36f191d89b1ea65fbba62b3350d6fc7d0e9b9f
+  # IsaacLab-Arena commit this example is tested against (v0.3.1, 2026-10-09). See README "Arena version".
+  local ARENA_REV=c7edf3a9d5d8276565208f72422f8f8a0806d6cf
   # A bare `local ARENA_DIR` would hide the caller's ARENA_DIR; copy its value in.
   local ARENA_DIR="${ARENA_DIR:-}"
   local HERE VENV MANAGED=true FORCE=false EXTRAS="" SYNCED=false

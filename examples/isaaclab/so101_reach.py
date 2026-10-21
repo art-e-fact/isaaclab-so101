@@ -51,8 +51,8 @@ class SO101ReachEnvCfg(ReachEnvCfg):
         self.rewards.end_effector_orientation_tracking = None
 
         # Follow the goal for the whole episode (it moves every 4 s), as Isaac Lab's reach task did before 3.0.0rc1.
-        # The rc1 task ends the episode on the first touch instead, and a position-only goal turns that into
-        # swinging through it. Without the touch bonus, rc1's action-size penalty holds the arm back near home;
+        # Since then the task ends the episode on the first touch, and a position-only goal turns that into
+        # swinging through it. Without the touch bonus, its action-size penalty holds the arm back near home;
         # the older fine-grained term pulls it the last few centimetres.
         self.terminations.success = None
         self.rewards.success = None
@@ -74,7 +74,7 @@ class SO101ReachEnvCfg(ReachEnvCfg):
 @configclass
 class SO101ReachPPORunnerCfg(FrankaReachPPORunnerCfg):
     experiment_name = "reach_so101"
-    max_iterations = 200  # tracking is best here (~1.3 cm); it slowly gets worse with longer training
+    max_iterations = 200  # tracking levels off here (~4 mm); 800 iterations do no better
 
 
 gym.register(

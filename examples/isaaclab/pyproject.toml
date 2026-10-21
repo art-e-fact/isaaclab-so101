@@ -5,7 +5,7 @@ description = "Run the SO-101 in plain Isaac Lab (no Arena), installed by uv alo
 requires-python = "==3.12.*"
 dependencies = [
     "isaaclab-so101",
-    "isaaclab[isaacsim,all,video]==3.0.0rc1",  # video: `isaaclab play --video` records clips headless
+    "isaaclab[isaacsim,all,video]==3.0.0",  # video: `isaaclab play --video` records clips headless
 ]
 
 # Isaac Lab's CLI (`isaaclab train/play`) imports the modules in this group, which register their tasks.
@@ -24,33 +24,37 @@ py-modules = ["so101_reach"]
 environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
 prerelease = "if-necessary-or-explicit"
 index-strategy = "first-index"
-# isaacsim-core pins packaging==26.0 and ovphysx wants <24. Isaac Lab's own uv-overrides.txt replaces both with this.
-override-dependencies = ["packaging>=20,<27"]
-constraint-dependencies = [
-    # Pinned by isaacsim-core. Only PyPI has this version, and a source applies only to a named requirement.
-    "mujoco-usd-converter==0.5.0",
-    # Pinned by isaacsim-core; a pre-release, which uv takes only when named.
-    "tinyobjloader==2.0.0rc13",
-    # Isaac Lab needs torch>=2.11. Its installer takes x86_64 builds from PyTorch's CUDA 12.8 index; PyPI's are CUDA 13.
+# Isaac Lab's tools/wheel_builder/uv-overrides.txt, as is: isaacsim-core pins older or narrower versions of these.
+override-dependencies = [
+    "numpy>=2",
+    "mujoco~=3.12.0",
+    "mujoco-warp~=3.12.0",
+    "newton[sim]==1.6.1",
+    "newton-usd-schemas>=0.5.0",
+    "usd-exchange==3.0.1",
+    "usd-optimize~=1.3.1",
     "torch==2.11.0",
     "torchvision==0.26.0",
+    "fsspec>=2026.6.0",
+    "packaging>=20,<27",
+    "urllib3>=2.8.0",
+]
+constraint-dependencies = [
+    # Pinned by isaacsim-core. Only PyPI has this version, and a source applies only to a named requirement.
+    "mujoco-usd-converter==0.6.1",
+    # Pinned by isaacsim-core; a pre-release, which uv takes only when named.
+    "tinyobjloader==2.0.0rc13",
 ]
 
 [[tool.uv.index]]
 url = "https://pypi.nvidia.com"
 
+# torch comes from here too: PyPI's x86_64 builds are CUDA 13.0, the build Isaac Lab 3.0 targets.
 [[tool.uv.index]]
 name = "pypi"
 url = "https://pypi.org/simple"
 default = true
 
-[[tool.uv.index]]
-name = "pytorch-cu128"
-url = "https://download.pytorch.org/whl/cu128"
-explicit = true
-
 [tool.uv.sources]
 isaaclab-so101 = { path = "../..", editable = true }
 mujoco-usd-converter = { index = "pypi" }
-torch = { index = "pytorch-cu128" }
-torchvision = { index = "pytorch-cu128" }

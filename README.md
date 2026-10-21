@@ -2,10 +2,12 @@
 
 [![Artefacts CI: natural_gamepad](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/natural_gamepad.png)](https://app.artefacts.com/artefacts/isaaclab-so101) [![Artefacts CI: joint_sweep](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/joint_sweep.png)](https://app.artefacts.com/artefacts/isaaclab-so101) [![Artefacts CI: reachability](https://app.artefacts.com/api/artefacts/isaaclab-so101/badges/reachability.png)](https://app.artefacts.com/artefacts/isaaclab-so101)
 
-🚧 Under development. Tested against [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena) `main` at aa36f19
-(2026-09-23), pinned in
-[`examples/arena/setup.sh`](https://github.com/art-e-fact/isaaclab-so101/blob/main/examples/arena/setup.sh). All tested
-combinations are under [Compatibility](#compatibility).
+🚧 Under development. Tested against [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena) v0.3.1 (c7edf3a,
+the head of `release/0.3.1` on 2026-10-09), pinned in
+[`examples/arena/setup.sh`](https://github.com/art-e-fact/isaaclab-so101/blob/main/examples/arena/setup.sh), and
+against [Isaac Lab](https://github.com/isaac-sim/IsaacLab) 3.0.0 on its own, pinned in
+[`examples/isaaclab/pyproject.toml`](https://github.com/art-e-fact/isaaclab-so101/blob/main/examples/isaaclab/pyproject.toml).
+All tested combinations are under [Compatibility](#compatibility).
 
 SO-101 follower embodiment (and optional leader-arm helpers) for
 [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena), and the robot configs on their own for plain
@@ -24,7 +26,7 @@ Planned features:
 
 ## Install
 
-First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/quickstart/installation.html),
+First, install [IsaacLab-Arena](https://isaac-sim.github.io/IsaacLab-Arena/release/0.3.1/pages/quickstart/installation.html),
 or only [Isaac Lab](https://isaac-sim.github.io/IsaacLab/) for the [Isaac Lab configs](#isaac-lab-without-arena).
 
 Requires Python 3.12 (same as Arena).
@@ -71,7 +73,7 @@ Isaac Lab and Arena from Arena's own uv lock.
 [arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/blob/25ea6bfea43a5134570e924fb3cdacb663f59472/arena_envs/src/shape_sorting/shape_sorting_env.py#L131)
 is a full one.
 
-See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/main/pages/concepts/embodiment/index.html) for more details.
+See the [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/release/0.3.1/pages/concepts/embodiment/index.html) for more details.
 
 ### Cameras
 
@@ -124,7 +126,7 @@ robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 The arm faces +X: `init_state` yaws its base 90°, so commands sampled in the base frame reach forward along -Y.
 [`examples/isaaclab/`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/isaaclab) sweeps the joints with
 the scene API and trains the arm in Isaac Lab's reach task with Isaac Lab's own `isaaclab train`. Tested with Isaac Lab
-3.0.0rc1 on PhysX. Newton can't load the USD yet: it carries its own world joint, and Newton won't merge it with the one
+3.0.0 on PhysX. Newton can't load the USD yet: it carries its own world joint, and Newton won't merge it with the one
 `fix_root_link` adds.
 
 ## Embodiments
@@ -298,12 +300,12 @@ instead of ending the session; it raises after `max_consecutive_read_failures` (
 
 ## Compatibility
 
-Tested combinations. Arena has no releases yet, so its rows name commits.
+Tested combinations. Arena tags no releases (v0.3.1 is its `release/0.3.1` branch), so its rows name commits.
 
 | Arena | Isaac Lab | Isaac Sim | lerobot | cuRobo | Checked by |
 |-------|-----------|-----------|---------|--------|------------|
-| none | 3.0.0rc1 | 6.1.0.0 | | | [`examples/isaaclab`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/isaaclab): joint sweep and SO101-Reach training, PhysX |
-| `main` aa36f19 | bb0c8e1, Arena's submodule | 6.1.0.0 | | | [`examples/arena`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/arena) smoke test |
+| none | 3.0.0 | 6.2.0.0 | | | [`examples/isaaclab`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/isaaclab): joint sweep and SO101-Reach training, PhysX |
+| v0.3.1 c7edf3a | 91a0906 (before 3.0.0), Arena's submodule | 6.1.0.0 | | | [`examples/arena`](https://github.com/art-e-fact/isaaclab-so101/tree/main/examples/arena) smoke test |
 | aa36f19 | bb0c8e1 | 6.1.0.0 | 0.6.1 | 0.8, at 8e734f3 | [arena-shape-sorting](https://github.com/art-e-fact/arena-shape-sorting/): headless policy runs and dataset generation |
 
 cuRobo 0.7.7, which Isaac Lab's `isaaclab_mimic` and Arena's reachability check pin, cannot load the shipped config
