@@ -28,7 +28,9 @@ python smoke_test.py                       # headless: builds the env with each 
 python natural_tour.py --out /tmp/so101    # headless: plays the natural gamepad layout and records it
 ```
 
-Isaac Sim asks you to accept its EULA on first start. `OMNI_KIT_ACCEPT_EULA=YES` accepts it without the prompt.
+Isaac Sim asks you to accept its EULA on first start. `OMNI_KIT_ACCEPT_EULA=YES` accepts it without the prompt:
+copy [`.env.example`](../../.env.example) to `.env` in the repo root, set it there, and load it into your shell with
+`set -a; source ../../.env; set +a` (uv does not read `.env` on its own).
 `source ./setup.sh --leader` adds the `leader` extra (lerobot) for a physical leader arm; `--force` re-syncs.
 
 `natural_tour.py` records the embodiment's two cameras, a plot of the commanded and measured TCP and the numbers
