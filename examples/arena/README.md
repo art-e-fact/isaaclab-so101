@@ -18,7 +18,7 @@ embodiment headless.
 lock), installs isaaclab-so101 from `../..` editable into that environment, and activates it. No Docker.
 
 Requirements: Linux x86_64, a GPU and driver that
-[Isaac Sim 6.1 supports](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/requirements.html),
+[Isaac Sim 6.1 supports](https://docs.isaacsim.omniverse.nvidia.com/6.1.0/installation/requirements.html),
 [uv](https://docs.astral.sh/uv/getting-started/installation/), git, and about 40 GB of disk.
 
 ```bash
@@ -83,8 +83,9 @@ it imports Isaac Lab, so it has to run after the simulation app starts.
 
 ## Arena version
 
-`ARENA_REV` in `setup.sh` pins the IsaacLab-Arena commit (`main` of 2026-09-23). Arena pins Isaac Lab through its
-`submodules/IsaacLab` and Isaac Sim through its `uv.lock`, so that one SHA fixes the whole stack. The clone is
+`ARENA_REV` in `setup.sh` pins the IsaacLab-Arena commit (v0.3.1: the head of `release/0.3.1`, 2026-10-09; Arena
+tags no releases). Arena pins Isaac Lab through its `submodules/IsaacLab` and Isaac Sim through its `uv.lock`, so that
+one SHA fixes the whole stack: here Isaac Lab 91a0906, from before the 3.0.0 release, and Isaac Sim 6.1. The clone is
 blobless and leaves Arena's LFS files (docs images, test data) as pointers: about 200 MB with the Isaac Lab
 submodule. To move the pin, change `ARENA_REV` and source the script again; it checks the managed clone out at the
 new commit and re-syncs. `ARENA_DIR=/path/to/IsaacLab-Arena` uses a checkout of your own instead, at whatever
