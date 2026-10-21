@@ -1,9 +1,21 @@
 # SO-101 in Isaac Lab Arena
 
-`so101_table.py` puts the SO-101 on a table with a cube to lift, using Arena's lift task. `setup.sh` builds the
-environment that runs it: it clones [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena) at a pinned
-commit into `IsaacLab-Arena/`, runs `uv sync` there (Isaac Sim, Isaac Lab from Arena's submodule and Arena, from
-Arena's own lock), installs isaaclab-so101 from `../..` editable into that environment, and activates it. No Docker.
+The SO-101 on a table with a cube to lift, in Arena's lift task: a minimal Arena environment for the
+[isaaclab-so101](../../README.md) embodiments. Teleoperate the arm, record demonstrations, or smoke-test every
+embodiment headless.
+
+| File | Purpose |
+|------|---------|
+| [`setup.sh`](setup.sh) | Builds and activates the environment that runs everything here |
+| [`so101_table.py`](so101_table.py) | The Arena environment; copy it to [start your own](#your-own-environment) |
+| [`smoke_test.py`](smoke_test.py) | Headless checks of every embodiment |
+| [`natural_tour.py`](natural_tour.py) | The [natural gamepad layout](../../README.md#natural-gamepad-layout) on a scripted gamepad, recorded |
+
+## Quick start
+
+`setup.sh` clones [IsaacLab-Arena](https://github.com/isaac-sim/IsaacLab-Arena) at a pinned commit into
+`IsaacLab-Arena/`, runs `uv sync` there (Isaac Sim, Isaac Lab from Arena's submodule and Arena, from Arena's own
+lock), installs isaaclab-so101 from `../..` editable into that environment, and activates it. No Docker.
 
 Requirements: Linux x86_64, a GPU and driver that
 [Isaac Sim 6.1 supports](https://docs.isaacsim.omniverse.nvidia.com/6.1.0/installation/requirements.html),
@@ -11,17 +23,16 @@ Requirements: Linux x86_64, a GPU and driver that
 
 ```bash
 cd examples/arena
-source ./setup.sh          # the first run downloads Isaac Sim, about 10 GB; later runs only activate
-python smoke_test.py       # headless: builds the env with each embodiment, steps it, checks the reset
+source ./setup.sh                          # the first run downloads Isaac Sim, about 10 GB; later runs only activate
+python smoke_test.py                       # headless: builds the env with each embodiment, steps it, checks the reset
+python natural_tour.py --out /tmp/so101    # headless: plays the natural gamepad layout and records it
 ```
 
 Isaac Sim asks you to accept its EULA on first start. `OMNI_KIT_ACCEPT_EULA=YES` accepts it without the prompt.
 `source ./setup.sh --leader` adds the `leader` extra (lerobot) for a physical leader arm; `--force` re-syncs.
 
-`natural_tour.py --out DIR` plays the [natural gamepad layout](../../README.md#natural-gamepad-layout-so101_abs_ik--so101_gamepad)
-on a scripted gamepad, headless, and records the embodiment's two cameras, a plot of the commanded and measured TCP
-and the numbers behind it; `showcase/test_natural_gamepad.py` turns them into a verdict (see
-[Showcase](../../README.md#showcase)).
+`natural_tour.py` records the embodiment's two cameras, a plot of the commanded and measured TCP and the numbers
+behind it; `showcase/test_natural_gamepad.py` turns them into a verdict (see [Showcase](../../README.md#showcase)).
 
 ## Teleoperate
 
@@ -43,7 +54,7 @@ The first launch compiles RTX shaders, which can take several minutes with no te
 
 | `--embodiment` | `--teleop_device` |
 |---|---|
-| `so101_abs_ik` | `so101_gamepad` (the [natural layout](../../README.md#natural-gamepad-layout-so101_abs_ik--so101_gamepad): pan, reach, lift, lean, spin) |
+| `so101_abs_ik` | `so101_gamepad` (the [natural layout](../../README.md#natural-gamepad-layout): pan, reach, lift, lean, spin) |
 | `so101_ik` | `keyboard`, `spacemouse`, `so101_gamepad` (Isaac Lab's SE(3) layout) |
 | `so101_abs_joint` | `so101_leader` (a physical leader arm; add `--leader_port /dev/ttyACM0`) |
 
