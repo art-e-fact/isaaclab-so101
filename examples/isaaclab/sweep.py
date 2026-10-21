@@ -5,7 +5,7 @@
     uv run python sweep.py --out DIR   # headless, and leaves sweep.mp4, joint_tracking.png and sweep.json in DIR
 """
 
-# ruff: noqa: E402  (Isaac Lab modules are imported after the app starts)
+# ruff: noqa: E402  (the heavy Isaac Lab imports wait until the arguments are parsed, so --help and bad arguments are quick)
 
 from __future__ import annotations
 
@@ -13,21 +13,22 @@ import argparse
 import json
 import math
 from pathlib import Path
+from types import SimpleNamespace
 
-from isaaclab.app import AppLauncher
+from isaaclab.app import add_launcher_args, launch_simulation
 
 parser = argparse.ArgumentParser(description="Sweep the SO-101's joints one at a time.")
 parser.add_argument("--out", type=Path, help="Also record a camera video, a joint-angle plot and sweep.json here.")
-AppLauncher.add_app_launcher_args(parser)
+add_launcher_args(parser)
 args = parser.parse_args()
 if args.out and args.visualizer:
     parser.error("--out records headless: drop --viz")
-app = AppLauncher(args, enable_cameras=args.out is not None).app  # the camera renders offscreen for the video
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import AssetBaseCfg
-from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
+from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import CameraCfg
+from isaaclab.utils import instantiate
 from isaaclab.utils.configclass import configclass
 
 from isaaclab_so101 import SIM_JOINT_NAMES
@@ -97,58 +98,62 @@ def report(out: Path, angles: list, peak: list[float], error: float, dt: float, 
     (out / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n")
 
 
-sim = sim_utils.SimulationContext(sim_utils.SimulationCfg(dt=1 / 120, device=args.device))
-sim.set_camera_view(**VIEW)
-scene = InteractiveScene((VideoSceneCfg if args.out else SceneCfg)(num_envs=1, env_spacing=1.0))
-sim.reset()
+sim_cfg = sim_utils.SimulationCfg(dt=1 / 120, device=args.device)
+scene_cfg = (VideoSceneCfg if args.out else SceneCfg)(num_envs=1, env_spacing=1.0)
+# launch_simulation reads what to start off this tree: the video's camera needs Kit with cameras enabled, and with no
+# physics config in it the plain headless run gets Kit too. --viz kit adds the window.
+with launch_simulation(SimpleNamespace(sim=sim_cfg, scene=scene_cfg), args):
+    sim = sim_utils.SimulationContext(sim_cfg)
+    sim.set_camera_view(**VIEW)
+    scene = instantiate(scene_cfg)  # not InteractiveScene itself: importing it loads pxr, which must wait for Kit
+    sim.reset()
 
-robot = scene["robot"]
-joint_ids, _ = robot.find_joints(list(SIM_JOINT_NAMES), preserve_order=True)
-home = robot.data.default_joint_pos.torch.clone()
-lower, upper = robot.data.soft_joint_pos_limits.torch.unbind(-1)
-dt = sim.get_physics_dt()
-sweep_steps = round(SWEEP_S / dt)
-pass_steps = len(joint_ids) * sweep_steps
-if args.out:
-    import imageio.v2 as imageio
-
-    args.out.mkdir(parents=True, exist_ok=True)
-    video = imageio.get_writer(args.out / "sweep.mp4", fps=VIDEO_FPS, codec="libx264", pixelformat="yuv420p", macro_block_size=None)
-    record_every = round(1 / (VIDEO_FPS * dt))
-    angles = []  # per step: the targets and the measured angles, in SIM_JOINT_NAMES order
-
-peak = [0.0] * len(joint_ids)  # how far each joint got from home during its own sweep
-step = 0
-while app.is_running():
-    sweeping = sim.has_gui or step < pass_steps  # headless: one pass, then hold home to settle
-    if not sweeping and step >= pass_steps + round(SETTLE_S / dt):
-        break
-    index, phase = divmod(step % pass_steps, sweep_steps)
-    target = home.clone()
-    if sweeping:
-        target[:, joint_ids[index]] += AMPLITUDE_RAD * math.sin(2 * math.pi * phase / sweep_steps)
-        if phase == 0:
-            print(f"[sweep] {SIM_JOINT_NAMES[index]}")
-    target = target.clamp(lower, upper)
-    robot.actuators.target_command.set_position_index(value=target)
-    scene.write_data_to_sim()
-    sim.step()
-    scene.update(dt)
-    measured = robot.data.joint_pos.torch
-    if sweeping:
-        peak[index] = max(peak[index], (measured - home)[0, joint_ids[index]].abs().item())
+    robot = scene["robot"]
+    joint_ids, _ = robot.find_joints(list(SIM_JOINT_NAMES), preserve_order=True)
+    home = robot.data.default_joint_pos.torch.clone()
+    lower, upper = robot.data.soft_joint_pos_limits.torch.unbind(-1)
+    dt = sim.get_physics_dt()
+    sweep_steps = round(SWEEP_S / dt)
+    pass_steps = len(joint_ids) * sweep_steps
     if args.out:
-        angles.append((target[0, joint_ids].tolist(), measured[0, joint_ids].tolist()))
-        if step % record_every == 0:
-            video.append_data(scene["camera"].data.output["rgb"].torch[0, :, :, :3].cpu().numpy())
-    step += 1
+        import imageio.v2 as imageio
 
-if not sim.has_gui:
-    error = (robot.data.joint_pos.torch - home).abs().max().item()
-    print(f"[sweep] peak travel {[round(p, 2) for p in peak]} rad, then {error:.3f} rad from home")
-    if args.out:
-        video.close()
-        report(args.out, angles, peak, error, dt, sweep_steps)
-    assert min(peak) > 0.8 * AMPLITUDE_RAD, "a joint did not follow its target"
-    assert error < TOLERANCE_RAD, "the arm did not settle back home"
-app.close()
+        args.out.mkdir(parents=True, exist_ok=True)
+        video = imageio.get_writer(args.out / "sweep.mp4", fps=VIDEO_FPS, codec="libx264", pixelformat="yuv420p", macro_block_size=None)
+        record_every = round(1 / (VIDEO_FPS * dt))
+        angles = []  # per step: the targets and the measured angles, in SIM_JOINT_NAMES order
+
+    peak = [0.0] * len(joint_ids)  # how far each joint got from home during its own sweep
+    step = 0
+    while sim.is_running():
+        sweeping = sim.has_gui or step < pass_steps  # headless: one pass, then hold home to settle
+        if not sweeping and step >= pass_steps + round(SETTLE_S / dt):
+            break
+        index, phase = divmod(step % pass_steps, sweep_steps)
+        target = home.clone()
+        if sweeping:
+            target[:, joint_ids[index]] += AMPLITUDE_RAD * math.sin(2 * math.pi * phase / sweep_steps)
+            if phase == 0:
+                print(f"[sweep] {SIM_JOINT_NAMES[index]}")
+        target = target.clamp(lower, upper)
+        robot.actuators.target_command.set_position_index(value=target)
+        scene.write_data_to_sim()
+        sim.step()
+        scene.update(dt)
+        measured = robot.data.joint_pos.torch
+        if sweeping:
+            peak[index] = max(peak[index], (measured - home)[0, joint_ids[index]].abs().item())
+        if args.out:
+            angles.append((target[0, joint_ids].tolist(), measured[0, joint_ids].tolist()))
+            if step % record_every == 0:
+                video.append_data(scene["camera"].data.output["rgb"].torch[0, :, :, :3].cpu().numpy())
+        step += 1
+
+    if not sim.has_gui:
+        error = (robot.data.joint_pos.torch - home).abs().max().item()
+        print(f"[sweep] peak travel {[round(p, 2) for p in peak]} rad, then {error:.3f} rad from home")
+        if args.out:
+            video.close()
+            report(args.out, angles, peak, error, dt, sweep_steps)
+        assert min(peak) > 0.8 * AMPLITUDE_RAD, "a joint did not follow its target"
+        assert error < TOLERANCE_RAD, "the arm did not settle back home"
