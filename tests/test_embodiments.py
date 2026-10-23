@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import dataclasses
+import importlib
 import math
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -59,3 +61,11 @@ def test_absolute_ik_commands_a_pose_and_leaves_the_relative_one_alone(isaac):
     # The stubs leave Isaac Lab's defaults as mocks; what matters is that the override stayed on its own instance.
     assert relative.action_config.arm_action.controller.use_relative_mode is not False
     assert relative.action_config.arm_action.scale != 1.0
+
+
+def test_embodiments_import_without_kit(isaac, monkeypatch):
+    # Spec tools import the module without Kit, so without carb, to register the embodiments.
+    monkeypatch.setitem(sys.modules, "carb", None)  # `import carb` raises ImportError
+    for name in ("isaaclab_so101.gamepad_device", "isaaclab_so101.embodiments.so101"):
+        monkeypatch.delitem(sys.modules, name)
+    importlib.import_module("isaaclab_so101.embodiments.so101")
