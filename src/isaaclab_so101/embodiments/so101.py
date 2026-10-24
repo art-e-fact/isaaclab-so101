@@ -297,11 +297,12 @@ class SO101EmbodimentBase(EmbodimentBase):
         return None if mesh is None else mesh.apply_transform(trimesh.transformations.rotation_matrix(math.pi / 2, (0, 0, 1)))
 
 
+# Arena keys its asset registry on ``registry_name``, and on ``name`` before isaac-sim/IsaacLab-Arena#1507.
 @register_asset
 class SO101AbsJointEmbodiment(SO101EmbodimentBase):
     """Absolute joint positions — preferred for SO-101 leader teleop."""
 
-    name = "so101_abs_joint"
+    name = registry_name = "so101_abs_joint"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -312,7 +313,7 @@ class SO101AbsJointEmbodiment(SO101EmbodimentBase):
 class SO101RelJointEmbodiment(SO101EmbodimentBase):
     """Relative joint position actions."""
 
-    name = "so101_rel_joint"
+    name = registry_name = "so101_rel_joint"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -323,7 +324,7 @@ class SO101RelJointEmbodiment(SO101EmbodimentBase):
 class SO101IKEmbodiment(SO101EmbodimentBase):
     """Differential IK (relative SE(3)) arm control + binary Jaw gripper."""
 
-    name = "so101_ik"
+    name = registry_name = "so101_ik"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -344,7 +345,7 @@ class SO101AbsIKEmbodiment(SO101IKEmbodiment):
     spacemouse stream deltas, so they stay with ``so101_ik``.
     """
 
-    name = "so101_abs_ik"
+    name = registry_name = "so101_abs_ik"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
