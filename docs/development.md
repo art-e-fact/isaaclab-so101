@@ -37,15 +37,14 @@ at least one authored sphere keeps only the authored ones. Then regenerate as ab
 ## Releasing
 
 [`publish.yml`](../.github/workflows/publish.yml) builds the wheel and sdist on every pull request, checks them with
-`twine check --strict`, and imports the wheel in a clean venv. Publishing a GitHub release uploads them to PyPI;
-running the workflow by hand uploads them to TestPyPI. Both use Trusted Publishing, so no token is stored. A TestPyPI
-run uploads `<version>.dev<run number>`, because neither index takes the same filename twice.
+`twine check --strict`, and imports the wheel in a clean venv. Publishing a GitHub release uploads them to PyPI with
+Trusted Publishing, so no token is stored. PyPI never takes the same filename twice, so a broken release is fixed by
+the next version, not by a re-upload.
 
 One-time setup:
 
-1. On [PyPI](https://pypi.org/manage/account/publishing/) and [TestPyPI](https://test.pypi.org/manage/account/publishing/),
-   add a pending publisher: owner `art-e-fact`, repository `isaaclab-so101`, workflow `publish.yml`, environment
-   `pypi` or `testpypi`.
+1. On [PyPI](https://pypi.org/manage/account/publishing/), add a pending publisher: project `isaaclab-so101`, owner
+   `art-e-fact`, repository `isaaclab-so101`, workflow `publish.yml`, environment `pypi`.
 2. In the repository settings, create the `pypi` environment with required reviewers, and limit its deployments to
    `v*` tags. Otherwise anyone who can push a branch can run the upload.
 
