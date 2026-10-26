@@ -111,6 +111,12 @@ a full one. See the
 [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/release/0.3.1/pages/concepts/embodiment/index.html)
 for more about embodiments.
 
+To edit a spec with the SO-101 and see its layout without Isaac Sim, use
+[arena-composer](https://github.com/art-e-fact/arena-composer): a visual editor, headless renderer and MCP server for
+Arena's specs. On an Arena without plugin loading, name `isaaclab_so101.embodiments` in its `ARENA_COMPOSER_IMPORTS`.
+[artefacts-arena-template](https://github.com/art-e-fact/artefacts-arena-template) sets up an Arena project with it in
+one command.
+
 ### Isaac Lab without Arena
 
 `isaaclab_so101.assets` imports only Isaac Lab. Like `isaaclab_assets`, import it after the simulation app starts:
