@@ -317,7 +317,11 @@ planner = MotionPlanner(MotionPlannerCfg.create(robot=robot_cfg()))
 |------|---------|
 | `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg`: collision spheres, self-collision ignore matrix, locked Jaw, home pose; plans target `tcp`, objects attach at `tcp` |
 | `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching the sim joint names, plus the fixed `tcp` link at `TCP_OFFSET` |
-| `embodiments/data/curobo/meshes/` | Link meshes (41 MB), not shipped: only the generator needs them |
+| `embodiments/data/curobo/meshes/` | Link meshes (41 MB), neither shipped nor in git: planning runs without them, a view that draws the robot does not |
+
+cuRobo's `ViserVisualizer` with `add_robot_to_scene` is such a view: give it the `so101.yml` of a checkout where the
+[generator](https://github.com/art-e-fact/isaaclab-so101/blob/main/docs/development.md#curobo-assets) has written
+`meshes/`.
 
 **Supported cuRobo: 0.8.** `so101.yml` and `robot_cfg()` target the 0.8 API (`curobo.motion_planner`), which is
 what the shape-sorting demo plans with. Isaac Lab's `isaaclab_mimic` planner and Arena's `isaaclab_arena_curobo`
