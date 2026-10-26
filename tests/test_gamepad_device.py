@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib
 from types import SimpleNamespace
 
 import pytest
@@ -238,5 +237,4 @@ def test_env_reset_event_reseeds_the_target_but_not_the_sticks(isaac):
     assert out[7] == 1.0
     assert pan_reach_from_xy(*out[:2])[1] == pytest.approx(reach_home + 0.01, abs=1e-6)  # home, then one step out
     term = isaac.so101.SO101AbsIKEmbodiment().get_events_cfg().reseed_gamepad_target  # what the env installs
-    module, _, name = term.func.partition(":")  # a name, which Isaac Lab resolves as it builds the env
-    assert getattr(importlib.import_module(module), name) is mod.reseed_natural_gamepads and term.mode == "reset"
+    assert term.func is mod.reseed_natural_gamepads and term.mode == "reset"

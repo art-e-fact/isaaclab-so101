@@ -35,6 +35,13 @@ def test_reset_returns_the_arm_to_its_initial_pose(isaac, cls_name):
     assert noisy.params["position_range"] == (-0.05, 0.05)
 
 
+@pytest.mark.parametrize("cls_name", EMBODIMENTS)
+def test_only_the_absolute_ik_embodiment_reseeds_the_gamepad_on_reset(isaac, cls_name):
+    # The natural gamepad layout, the one that holds an absolute target, drives only so101_abs_ik.
+    term = getattr(isaac.so101, cls_name)().get_events_cfg().reseed_gamepad_target
+    assert (term is not None) == (cls_name == "SO101AbsIKEmbodiment")
+
+
 def test_jaw_gap_matches_the_usd_tips(isaac):
     import torch
 
