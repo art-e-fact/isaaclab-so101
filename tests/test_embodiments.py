@@ -72,10 +72,13 @@ def test_embodiments_import_without_kit(isaac, monkeypatch):
     importlib.import_module("isaaclab_so101.embodiments.so101")
 
 
-def test_arena_plugin_entry_point_names_the_embodiments():
-    # Arena imports it on its first registry lookup, so it must import without Kit: see the test above.
-    (plugin,) = entry_points(group="isaaclab_arena.plugins", name="so101")
-    assert plugin.value == "isaaclab_so101.embodiments"
+@pytest.mark.parametrize(
+    ("name", "module"), [("so101", "isaaclab_so101.embodiments"), ("so101_retargeters", "isaaclab_so101.retargeters")]
+)
+def test_arena_plugin_entry_points_name_the_kitless_modules(name, module):
+    # Arena imports them on its first registry lookup, which can come before Kit starts.
+    (plugin,) = entry_points(group="isaaclab_arena.plugins", name=name)
+    assert plugin.value == module
 
 
 @pytest.mark.parametrize("cls_name", EMBODIMENTS)

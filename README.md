@@ -82,9 +82,9 @@ No Isaac Sim yet? Each of the [demos](#demos) sets up the whole stack with one c
 ### Arena
 
 On an Arena that loads plugins, installing the package is enough. Arena imports the package's `isaaclab_arena.plugins`
-entry point on its first registry lookup, which registers `so101_abs_joint`, `so101_rel_joint`, `so101_ik` and
-`so101_abs_ik`. They then work by name like Arena's own embodiments, for example as an environment spec's
-`embodiment.registry_name`:
+entry points on its first registry lookup, which register `so101_abs_joint`, `so101_rel_joint`, `so101_ik` and
+`so101_abs_ik`, and the retargeters that let Arena's `keyboard` and `spacemouse` drive `so101_ik`. The embodiments then
+work by name like Arena's own, for example as an environment spec's `embodiment.registry_name`:
 
 ```python
 from isaaclab_arena.assets.registries import AssetRegistry
@@ -92,9 +92,9 @@ from isaaclab_arena.assets.registries import AssetRegistry
 embodiment = AssetRegistry().get_asset_by_name("so101_abs_joint")(enable_cameras=True)
 ```
 
-No Arena release loads plugins yet. On an Arena without plugin loading, and for teleoperation, register once
-after `SimulationApp` is running. `register()` also registers the teleop devices `so101_leader` and `so101_gamepad`,
-which need Kit, and the retargeters that pair devices with the SO-101:
+No Arena release loads plugins yet. On an Arena without plugin loading, and for the SO-101's own teleop devices,
+register once after `SimulationApp` is running. `register()` registers all of the above, and the devices `so101_leader`
+and `so101_gamepad`, which need Kit:
 
 ```python
 import isaaclab_so101

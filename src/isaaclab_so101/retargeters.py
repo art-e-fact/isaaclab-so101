@@ -1,4 +1,8 @@
-"""Retargeter entries pairing teleop devices with SO-101 embodiments."""
+"""Retargeter entries pairing teleop devices with SO-101 embodiments.
+
+The ``isaaclab_arena.plugins`` entry point imports this module on Arena's first registry lookup, which can come before
+Kit starts, so it must not import ``carb``, ``omni`` or ``isaacsim``.
+"""
 
 from __future__ import annotations
 
