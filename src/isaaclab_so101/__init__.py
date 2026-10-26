@@ -1,8 +1,8 @@
 """SO-101 for Isaac Lab and Isaac Lab Arena.
 
-Arena: an Arena that loads plugins imports the embodiments and retargeters through this package's
-``isaaclab_arena.plugins`` entry points. Otherwise, and for the SO-101's teleop devices, call :func:`register` after
-``SimulationApp`` starts (imports Isaac Lab).
+Arena: an Arena that loads plugins imports the embodiments, teleop devices and retargeters through this package's
+``isaaclab_arena.plugins`` entry points. Otherwise call :func:`register` after ``SimulationApp`` starts (imports
+Isaac Lab).
 Isaac Lab alone: import the robot configs from :mod:`isaaclab_so101.assets` after the app starts.
 The constants below are pure Python and safe to import anywhere.
 """

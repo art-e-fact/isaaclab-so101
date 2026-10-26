@@ -12,9 +12,10 @@ First release on PyPI.
 - Arena embodiments `so101_abs_joint`, `so101_rel_joint`, `so101_ik` and `so101_abs_ik`, and the teleop devices
   `so101_leader` and `so101_gamepad`, all registered by `isaaclab_so101.register()`. The embodiments set both
   `registry_name` and `name`, so they register on Arena before and after its `registry_name` rename.
-- `isaaclab_arena.plugins` entry points that register the embodiments and their retargeters, for an Arena that loads
-  plugins: installing the package is then enough, and Arena's `keyboard` and `spacemouse` can drive `so101_ik`. They
-  import without Kit, so spec tools that run without Isaac Sim load them too.
+- `isaaclab_arena.plugins` entry points that register the embodiments, the teleop devices and their retargeters, for
+  an Arena that loads plugins: installing the package is then enough, also to teleoperate with the SO-101's devices
+  or Arena's `keyboard` and `spacemouse`. They import without Kit, so spec tools that run without Isaac Sim load them
+  too.
 - The natural gamepad layout: with `so101_abs_ik`, the sticks drive the TCP in the arm's own coordinates, and a
   closed-form IK keeps every target reachable.
 - `isaaclab_so101.assets` for plain Isaac Lab without Arena: `SO101_CFG`, `SO101_HIGH_PD_CFG` and
@@ -32,7 +33,8 @@ First release on PyPI.
 ### Changed, for installs from earlier git commits
 
 - The distribution is now `isaaclab-so101` and the module `isaaclab_so101`, renamed from `arena-so101` and
-  `arena_so101`. Reinstall editable checkouts.
+  `arena_so101`. Reinstall editable checkouts, and uninstall `arena-so101`: installing `isaaclab-so101` leaves it
+  in place.
 - The cuRobo YAML's package section is now `isaaclab_so101:`, and the generator writes to
   `~/.cache/isaaclab_so101/curobo` by default.
 - The `gamepad` device is now `so101_gamepad`. Its joint-space layout is gone: pair it with `so101_abs_ik`.

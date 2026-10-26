@@ -7,6 +7,11 @@ SO-101 specific so it cannot collide with a generic Arena ``gamepad`` device.
 
 ``so101_leader`` returns an Isaac Lab ``DeviceCfg`` that emits absolute joint
 targets for ``so101_abs_joint`` (not SE3).
+
+Arena imports this module through the package's ``isaaclab_arena.plugins`` entry
+point, which can run before Isaac Sim starts. So neither it nor the device modules
+it imports may import ``carb``, ``omni`` or ``isaacsim`` at module level: the
+devices import them when constructed.
 """
 
 from __future__ import annotations

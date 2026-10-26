@@ -9,12 +9,11 @@ from __future__ import annotations
 
 import weakref
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
 
-import carb
-import omni
 from isaaclab.devices.device_base import DeviceBase, DeviceCfg
 from isaaclab.utils.configclass import configclass
 
@@ -26,6 +25,10 @@ from isaaclab_so101.ee_pose import (
     pan_reach_from_xy,
     xy_from_pan_reach,
 )
+
+# No carb or omni at module level: Arena imports this module (through devices.py) before Isaac Sim starts.
+if TYPE_CHECKING:
+    import carb
 
 
 class SO101NaturalGamepad(DeviceBase):
@@ -58,6 +61,9 @@ class SO101NaturalGamepad(DeviceBase):
         )
         self._default_target = np.asarray(self._cylindrical(cfg.default_pose), dtype=np.float32)
         self._limits = np.asarray(cfg.limits, dtype=np.float32)
+
+        import carb
+        import omni
 
         # Stick input → (0 positive / 1 negative, target axis). Built here, not at import: ``carb.input`` only
         # exists once Kit has loaded its input plugin, which is after this module is imported headless.
@@ -210,6 +216,8 @@ class SO101NaturalGamepad(DeviceBase):
                 return
 
     def _on_gamepad_event(self, event, *args, **kwargs) -> bool:
+        import carb
+
         cur_val = event.value
         if abs(cur_val) < self.dead_zone:
             cur_val = 0.0
@@ -246,6 +254,8 @@ class SO101NaturalGamepad(DeviceBase):
         return True
 
     def _on_keyboard_event(self, event, *args, **kwargs) -> bool:
+        import carb
+
         if event.type != carb.input.KeyboardEventType.KEY_PRESS:
             return True
         name = event.input.name

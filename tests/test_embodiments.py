@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-import importlib
 import math
 import sys
 from importlib.metadata import entry_points
@@ -36,6 +35,13 @@ def test_reset_returns_the_arm_to_its_initial_pose(isaac, cls_name):
     assert noisy.params["position_range"] == (-0.05, 0.05)
 
 
+@pytest.mark.parametrize("cls_name", EMBODIMENTS)
+def test_only_the_absolute_ik_embodiment_reseeds_the_gamepad_on_reset(isaac, cls_name):
+    # The natural gamepad layout, the one that holds an absolute target, drives only so101_abs_ik.
+    term = getattr(isaac.so101, cls_name)().get_events_cfg().reseed_gamepad_target
+    assert (term is not None) == (cls_name == "SO101AbsIKEmbodiment")
+
+
 def test_jaw_gap_matches_the_usd_tips(isaac):
     import torch
 
@@ -64,16 +70,39 @@ def test_absolute_ik_commands_a_pose_and_leaves_the_relative_one_alone(isaac):
     assert relative.action_config.arm_action.scale != 1.0
 
 
-def test_embodiments_import_without_kit(isaac, monkeypatch):
-    # Spec tools import the module without Kit, so without carb, to register the embodiments.
-    monkeypatch.setitem(sys.modules, "carb", None)  # `import carb` raises ImportError
-    for name in ("isaaclab_so101.gamepad_device", "isaaclab_so101.embodiments.so101"):
-        monkeypatch.delitem(sys.modules, name)
-    importlib.import_module("isaaclab_so101.embodiments.so101")
+def test_arena_plugins_register_the_embodiments_and_teleop_devices_without_kit(isaac, monkeypatch):
+    # Arena loads every isaaclab_arena.plugins entry point on its first registry lookup, which can come before Isaac
+    # Sim starts. Load this package's afresh with Kit's modules unimportable, and record what they register.
+    for module in vars(isaac).values():  # imported by the fixture, against the carb and omni stubs
+        monkeypatch.delitem(sys.modules, module.__name__)
+    for name in ("carb", "omni", "isaacsim"):
+        monkeypatch.setitem(sys.modules, name, None)  # importing it raises ImportError
+    assets, devices, retargeters = {}, {}, {}
+    register = sys.modules["isaaclab_arena.assets.register"]
+    # Arena keys an asset on its registry_name, a device on its name and a retargeter on its (device, embodiment).
+    monkeypatch.setattr(register, "register_asset", lambda cls: assets.setdefault(cls.registry_name, cls))
+    monkeypatch.setattr(register, "register_device", lambda cls: devices.setdefault(cls.name, cls))
+    monkeypatch.setattr(
+        register, "register_retargeter", lambda cls: retargeters.setdefault((cls.device, cls.embodiment), cls)
+    )
+
+    for plugin in entry_points(group="isaaclab_arena.plugins"):
+        plugin.load()
+
+    assert assets.keys() == {"so101_abs_joint", "so101_rel_joint", "so101_ik", "so101_abs_ik"}
+    assert devices.keys() == {"so101_gamepad", "so101_leader"}
+    # Arena builds a device's cfg through the retargeter registered for its (device, embodiment) pair.
+    pairs = {("so101_leader", "so101_abs_joint"), ("so101_gamepad", "so101_ik"), ("so101_gamepad", "so101_abs_ik")}
+    assert pairs <= retargeters.keys()
 
 
 @pytest.mark.parametrize(
-    ("name", "module"), [("so101", "isaaclab_so101.embodiments"), ("so101_retargeters", "isaaclab_so101.retargeters")]
+    ("name", "module"),
+    [
+        ("so101", "isaaclab_so101.embodiments"),
+        ("so101_devices", "isaaclab_so101.devices"),
+        ("so101_retargeters", "isaaclab_so101.retargeters"),
+    ],
 )
 def test_arena_plugin_entry_points_name_the_kitless_modules(name, module):
     # Arena imports them on its first registry lookup, which can come before Kit starts.

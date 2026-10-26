@@ -75,6 +75,9 @@ The base package has no Python dependencies; Isaac Sim, Isaac Lab and Arena come
 pin `lerobot>=0.6.1,<0.7`. If a lerobot upgrade would replace Isaac Sim's `torch`, install with a constraints file
 that pins your Isaac Sim `torch`/`torchvision`.
 
+`isaaclab-so101` was `arena-so101` before its first release. Installing it does not remove `arena-so101`, so
+uninstall that from the same environment: `python -m pip uninstall arena-so101`.
+
 No Isaac Sim yet? Each of the [demos](#demos) sets up the whole stack with one command.
 
 ## Quick start
@@ -82,9 +85,10 @@ No Isaac Sim yet? Each of the [demos](#demos) sets up the whole stack with one c
 ### Arena
 
 On an Arena that loads plugins, installing the package is enough. Arena imports the package's `isaaclab_arena.plugins`
-entry points on its first registry lookup, which register `so101_abs_joint`, `so101_rel_joint`, `so101_ik` and
-`so101_abs_ik`, and the retargeters that let Arena's `keyboard` and `spacemouse` drive `so101_ik`. The embodiments then
-work by name like Arena's own, for example as an environment spec's `embodiment.registry_name`:
+entry points on its first registry lookup, which register the embodiments `so101_abs_joint`, `so101_rel_joint`,
+`so101_ik` and `so101_abs_ik`, the teleop devices `so101_leader` and `so101_gamepad`, and the retargeters that pair
+devices with them, Arena's `keyboard` and `spacemouse` included. They then work by name like Arena's own, for example
+as an environment spec's `embodiment.registry_name`:
 
 ```python
 from isaaclab_arena.assets.registries import AssetRegistry
@@ -92,9 +96,8 @@ from isaaclab_arena.assets.registries import AssetRegistry
 embodiment = AssetRegistry().get_asset_by_name("so101_abs_joint")(enable_cameras=True)
 ```
 
-No Arena release loads plugins yet. On an Arena without plugin loading, and for the SO-101's own teleop devices,
-register once after `SimulationApp` is running. `register()` registers all of the above, and the devices `so101_leader`
-and `so101_gamepad`, which need Kit:
+No Arena release loads plugins yet. On an Arena without plugin loading, register all of them once after
+`SimulationApp` is running:
 
 ```python
 import isaaclab_so101
@@ -317,7 +320,11 @@ planner = MotionPlanner(MotionPlannerCfg.create(robot=robot_cfg()))
 |------|---------|
 | `embodiments/data/curobo/so101.yml` | cuRobo `robot_cfg`: collision spheres, self-collision ignore matrix, locked Jaw, home pose; plans target `tcp`, objects attach at `tcp` |
 | `embodiments/data/curobo/urdf/SO-ARM101-USD.urdf` | Kinematics matching the sim joint names, plus the fixed `tcp` link at `TCP_OFFSET` |
-| `embodiments/data/curobo/meshes/` | Link meshes (41 MB), not shipped: only the generator needs them |
+| `embodiments/data/curobo/meshes/` | Link meshes (41 MB), neither shipped nor in git: planning runs without them, a view that draws the robot does not |
+
+cuRobo's `ViserVisualizer` with `add_robot_to_scene` is such a view: give it the `so101.yml` of a checkout where the
+[generator](https://github.com/art-e-fact/isaaclab-so101/blob/main/docs/development.md#curobo-assets) has written
+`meshes/`.
 
 **Supported cuRobo: 0.8.** `so101.yml` and `robot_cfg()` target the 0.8 API (`curobo.motion_planner`), which is
 what the shape-sorting demo plans with. Isaac Lab's `isaaclab_mimic` planner and Arena's `isaaclab_arena_curobo`
