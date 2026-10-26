@@ -1,15 +1,14 @@
 name: Publish
 
 # Builds and checks the wheel and sdist on every pull request and push to main. A published GitHub release uploads
-# them to PyPI; running the workflow by hand uploads them to TestPyPI. Both use Trusted Publishing, so no token is
-# stored: PyPI trusts this workflow file in this repository, through the `pypi` or `testpypi` environment.
+# them to PyPI with Trusted Publishing, so no token is stored: PyPI trusts this workflow file in this repository,
+# through the `pypi` environment.
 on:
   pull_request:
   push:
     branches: [main]
   release:
     types: [published]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -29,10 +28,6 @@ jobs:
       - name: The release tag matches the version
         if: github.event_name == 'release'
         run: test "${GITHUB_REF_NAME}" = "v$(uv version --short)"
-      # TestPyPI, like PyPI, never takes the same filename twice, so each manual run uploads its own dev version.
-      - name: Stamp a dev version for TestPyPI
-        if: github.event_name == 'workflow_dispatch'
-        run: uv version --frozen "$(uv version --short).dev${GITHUB_RUN_NUMBER}"
       - run: uv build
       - run: uvx twine check --strict dist/*
       # CI tests an editable install, which reads data files straight from src/. Only the wheel shows a file that
@@ -75,22 +70,3 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
-
-  testpypi:
-    if: github.event_name == 'workflow_dispatch'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/project/isaaclab-so101/
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          skip-existing: true  # a re-run of the same run rebuilds the same dev version
