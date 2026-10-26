@@ -25,7 +25,7 @@ def _natural(pad):
 
 def test_callbacks_fire_once_per_press(isaac):
     mod = isaac.gamepad_device
-    b = mod.carb.input.GamepadInput.B
+    b = isaac.carb.input.GamepadInput.B
     pad = _pad(mod)
     calls = []
     pad.add_callback(b, lambda: calls.append(1))
@@ -43,17 +43,17 @@ def test_keyboard_r_and_back_button_reset_once_when_bound_as_r_and_reset(isaac):
     pad.add_callback("RESET", lambda: calls.append("RESET"))
 
     pad._on_keyboard_event(
-        SimpleNamespace(type=mod.carb.input.KeyboardEventType.KEY_PRESS, input=SimpleNamespace(name="R"))
+        SimpleNamespace(type=isaac.carb.input.KeyboardEventType.KEY_PRESS, input=SimpleNamespace(name="R"))
     )
     assert calls == ["R"]
 
-    _events(pad, mod.carb.input.GamepadInput.MENU1, 0.6, 1.0, 0.0)  # Back, one press
+    _events(pad, isaac.carb.input.GamepadInput.MENU1, 0.6, 1.0, 0.0)  # Back, one press
     assert calls == ["R", "RESET"]
 
 
 def test_natural_gamepad_moves_the_fingertips_in_the_arms_own_directions(isaac):
     mod = isaac.gamepad_device
-    gi = mod.carb.input.GamepadInput
+    gi = isaac.carb.input.GamepadInput
     pad = _pad(mod, pos_delta_scale=0.01, delta_scale=0.1)
     x, y, z, tilt, roll = HOME_NATURAL_POSE
     pan, reach = pan_reach_from_xy(x, y)
@@ -98,7 +98,7 @@ def test_natural_gamepad_moves_the_fingertips_in_the_arms_own_directions(isaac):
 
 def test_target_stops_where_the_arm_runs_out_and_the_other_axes_go_on(isaac, capsys):
     mod = isaac.gamepad_device
-    gi = mod.carb.input.GamepadInput
+    gi = isaac.carb.input.GamepadInput
     pad = _pad(mod)
     margin = pad.cfg.limit_margin
     _, reach0, z0, tilt0, _ = pad._target.tolist()
@@ -142,7 +142,7 @@ def test_target_stops_where_the_arm_runs_out_and_the_other_axes_go_on(isaac, cap
 
 def test_stopped_is_reported_once_per_hold_even_when_the_lean_lets_steps_through(isaac, capsys):
     mod = isaac.gamepad_device
-    gi = mod.carb.input.GamepadInput
+    gi = isaac.carb.input.GamepadInput
     pad = _pad(mod)
     _events(pad, gi.LEFT_STICK_DOWN, 1.0)  # reach in and down: the reach is blocked on and off as the lean helps
     _events(pad, gi.LEFT_TRIGGER, 1.0)
@@ -166,7 +166,7 @@ def test_stopped_is_reported_once_per_hold_even_when_the_lean_lets_steps_through
 
 def test_quaternion_stays_continuous_when_the_pan_crosses_minus_pi(isaac):
     mod = isaac.gamepad_device
-    gi = mod.carb.input.GamepadInput
+    gi = isaac.carb.input.GamepadInput
     pad = _pad(mod, pos_delta_scale=0.01)
     _events(pad, gi.LEFT_STICK_RIGHT, 1.0)  # pan right from home (-1.26 rad), past -π (90° right of forward)
     prev = pad.advance()[3:7]
@@ -181,7 +181,7 @@ def test_lifting_leans_the_gripper_forward_when_the_wrist_runs_out(isaac):
     # From home the Wrist_Pitch is 0.14 rad from its limit: a centimetre of lift at the home tilt is all it has.
     # The device leans the gripper a step forward per blocked step instead of stopping, so the lift goes on.
     mod = isaac.gamepad_device
-    gi = mod.carb.input.GamepadInput
+    gi = isaac.carb.input.GamepadInput
     pad = _pad(mod)
     _, _, z0, tilt0, _ = pad._target.tolist()
     _events(pad, gi.RIGHT_TRIGGER, 1.0)
@@ -195,7 +195,7 @@ def test_lifting_leans_the_gripper_forward_when_the_wrist_runs_out(isaac):
 
 def test_dpad_scales_the_speed_and_lb_slows(isaac):
     mod = isaac.gamepad_device
-    gi = mod.carb.input.GamepadInput
+    gi = isaac.carb.input.GamepadInput
     pad = _pad(mod, pos_delta_scale=0.01)
 
     def dz():
@@ -223,7 +223,7 @@ def test_dpad_scales_the_speed_and_lb_slows(isaac):
 
 def test_env_reset_event_reseeds_the_target_but_not_the_sticks(isaac):
     mod = isaac.gamepad_device
-    gi = mod.carb.input.GamepadInput
+    gi = isaac.carb.input.GamepadInput
     pad = _pad(mod, pos_delta_scale=0.01)
     reach_home = pad._target[1]
     _events(pad, gi.LEFT_STICK_UP, 1.0)

@@ -9,8 +9,7 @@ from pathlib import Path
 
 import torch
 
-import carb
-import omni
+# No carb or omni at module level: Arena imports this module (through devices.py) before Isaac Sim starts.
 from isaaclab.devices.device_base import DeviceBase, DeviceCfg
 from isaaclab.utils.configclass import configclass
 
@@ -38,6 +37,9 @@ class SO101LeaderDevice(DeviceBase):
         self._last_action: torch.Tensor | None = None
         self._read_failures = 0
         self._leader = self._connect_leader(cfg)
+
+        import carb
+        import omni
 
         self._appwindow = omni.appwindow.get_default_app_window()
         self._input = carb.input.acquire_input_interface()
@@ -115,6 +117,8 @@ class SO101LeaderDevice(DeviceBase):
         return leader
 
     def _on_keyboard_event(self, event, *args, **kwargs) -> bool:
+        import carb
+
         if event.type != carb.input.KeyboardEventType.KEY_PRESS:
             return True
         # Forward any registered key (R/RESET used by stock record_demos; others optional).

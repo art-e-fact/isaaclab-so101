@@ -18,6 +18,7 @@ _ISAAC_DEPENDENT = (
     "gamepad_device",
     "leader_device",
     "devices",
+    "retargeters",
     "embodiments",
     "embodiments.so101",
 )
@@ -59,7 +60,7 @@ def _reset_joints_by_offset(env, env_ids, position_range, velocity_range, asset_
 def isaac(monkeypatch):
     """Import the Isaac-dependent isaaclab_so101 modules against stubbed Isaac Sim / Lab / Arena.
 
-    Returns a namespace of the freshly imported modules, by their last name (``isaac.so101``).
+    Returns a namespace of the freshly imported modules, by their last name (``isaac.so101``), and the ``carb`` stub.
     Everything, including the ``isaaclab_so101.<module>`` entries in ``sys.modules`` and on the
     package, is restored afterwards.
     """
@@ -116,7 +117,12 @@ def isaac(monkeypatch):
         # package, and its ``configclass`` attribute becomes the submodule once anything imports that directly.
         "isaaclab.utils.configclass": {"configclass": _configclass},
         "isaaclab_arena.assets.device_library": {"TeleopDeviceBase": TeleopDeviceBase},
-        "isaaclab_arena.assets.register": {"register_asset": _identity, "register_device": _identity},
+        "isaaclab_arena.assets.register": {
+            "register_asset": _identity,
+            "register_device": _identity,
+            "register_retargeter": _identity,
+        },
+        "isaaclab_arena.assets.retargeter_library": {"RetargetterBase": object},
         "isaaclab_arena.embodiments.embodiment_base": {"EmbodimentBase": EmbodimentBase},
         "isaaclab_arena.embodiments.gripper": {"ParallelJawGripper": ParallelJawGripper},
         "isaaclab_arena.utils.cameras": {"ArenaCameraCfg": ArenaCameraCfg},
@@ -170,4 +176,4 @@ def isaac(monkeypatch):
         short.rpartition(".")[2]: importlib.import_module(f"isaaclab_so101.{short}") for short in _ISAAC_DEPENDENT
     }
     carb_loaded = True  # noqa: F841  (read by _carb_getattr)
-    return SimpleNamespace(**modules)
+    return SimpleNamespace(carb=carb, **modules)
