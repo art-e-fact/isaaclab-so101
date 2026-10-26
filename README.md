@@ -75,6 +75,9 @@ The base package has no Python dependencies; Isaac Sim, Isaac Lab and Arena come
 pin `lerobot>=0.6.1,<0.7`. If a lerobot upgrade would replace Isaac Sim's `torch`, install with a constraints file
 that pins your Isaac Sim `torch`/`torchvision`.
 
+`isaaclab-so101` was `arena-so101` before its first release. Installing it does not remove `arena-so101`, so
+uninstall that from the same environment: `python -m pip uninstall arena-so101`.
+
 No Isaac Sim yet? Each of the [demos](#demos) sets up the whole stack with one command.
 
 ## Quick start

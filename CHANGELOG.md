@@ -33,7 +33,8 @@ First release on PyPI.
 ### Changed, for installs from earlier git commits
 
 - The distribution is now `isaaclab-so101` and the module `isaaclab_so101`, renamed from `arena-so101` and
-  `arena_so101`. Reinstall editable checkouts.
+  `arena_so101`. Reinstall editable checkouts, and uninstall `arena-so101`: installing `isaaclab-so101` leaves it
+  in place.
 - The cuRobo YAML's package section is now `isaaclab_so101:`, and the generator writes to
   `~/.cache/isaaclab_so101/curobo` by default.
 - The `gamepad` device is now `so101_gamepad`. Its joint-space layout is gone: pair it with `so101_abs_ik`.
