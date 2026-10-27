@@ -81,17 +81,26 @@ No Isaac Sim yet? Each of the [demos](#demos) sets up the whole stack with one c
 
 ### Arena
 
-After `SimulationApp` is running, register once, then use the SO-101 like any Arena embodiment:
+On an Arena that loads plugins, installing the package is enough. Arena imports the package's `isaaclab_arena.plugins`
+entry points on its first registry lookup, which register `so101_abs_joint`, `so101_rel_joint`, `so101_ik` and
+`so101_abs_ik`, and the retargeters that let Arena's `keyboard` and `spacemouse` drive `so101_ik`. The embodiments then
+work by name like Arena's own, for example as an environment spec's `embodiment.registry_name`:
+
+```python
+from isaaclab_arena.assets.registries import AssetRegistry
+
+embodiment = AssetRegistry().get_asset_by_name("so101_abs_joint")(enable_cameras=True)
+```
+
+No Arena release loads plugins yet. On an Arena without plugin loading, and for the SO-101's own teleop devices,
+register once after `SimulationApp` is running. `register()` registers all of the above, and the devices `so101_leader`
+and `so101_gamepad`, which need Kit:
 
 ```python
 import isaaclab_so101
 
 # so101_abs_joint, so101_rel_joint, so101_ik, so101_abs_ik; devices so101_leader, so101_gamepad
 isaaclab_so101.register()
-
-from isaaclab_arena.assets.registries import AssetRegistry
-
-embodiment = AssetRegistry().get_asset_by_name("so101_abs_joint")(enable_cameras=True)
 ```
 
 Arena finds external environments by path (`--external_environment_class_path module:Class`), and the environment
@@ -101,6 +110,12 @@ registers the SO-101 inside its `build()`. The
 a full one. See the
 [IsaacLab-Arena documentation](https://isaac-sim.github.io/IsaacLab-Arena/release/0.3.1/pages/concepts/embodiment/index.html)
 for more about embodiments.
+
+To edit a spec with the SO-101 and see its layout without Isaac Sim, use
+[arena-composer](https://github.com/art-e-fact/arena-composer): a visual editor, headless renderer and MCP server for
+Arena's specs. On an Arena without plugin loading, name `isaaclab_so101.embodiments` in its `ARENA_COMPOSER_IMPORTS`.
+[artefacts-arena-template](https://github.com/art-e-fact/artefacts-arena-template) sets up an Arena project with it in
+one command.
 
 ### Isaac Lab without Arena
 

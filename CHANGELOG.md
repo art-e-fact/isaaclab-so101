@@ -10,7 +10,11 @@ First release on PyPI.
 ### Added
 
 - Arena embodiments `so101_abs_joint`, `so101_rel_joint`, `so101_ik` and `so101_abs_ik`, and the teleop devices
-  `so101_leader` and `so101_gamepad`, all registered by `isaaclab_so101.register()`.
+  `so101_leader` and `so101_gamepad`, all registered by `isaaclab_so101.register()`. The embodiments set both
+  `registry_name` and `name`, so they register on Arena before and after its `registry_name` rename.
+- `isaaclab_arena.plugins` entry points that register the embodiments and their retargeters, for an Arena that loads
+  plugins: installing the package is then enough, and Arena's `keyboard` and `spacemouse` can drive `so101_ik`. They
+  import without Kit, so spec tools that run without Isaac Sim load them too.
 - The natural gamepad layout: with `so101_abs_ik`, the sticks drive the TCP in the arm's own coordinates, and a
   closed-form IK keeps every target reachable.
 - `isaaclab_so101.assets` for plain Isaac Lab without Arena: `SO101_CFG`, `SO101_HIGH_PD_CFG` and

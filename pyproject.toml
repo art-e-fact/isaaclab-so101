@@ -36,6 +36,13 @@ Source = "https://github.com/art-e-fact/isaaclab-so101"
 Issues = "https://github.com/art-e-fact/isaaclab-so101/issues"
 Changelog = "https://github.com/art-e-fact/isaaclab-so101/blob/main/CHANGELOG.md"
 
+# Arena imports these modules on its first registry lookup, which registers the embodiments and the retargeters that
+# pair teleop devices with them. They import without Kit, as spec tools that run without Isaac Sim load them too. The
+# teleop devices need Kit, so register() still imports them.
+[project.entry-points."isaaclab_arena.plugins"]
+so101 = "isaaclab_so101.embodiments"
+so101_retargeters = "isaaclab_so101.retargeters"
+
 # PEP 735 groups are not published, unlike extras. Install with `uv pip install --group dev`.
 [dependency-groups]
 # Lint and tests. The tests stub Isaac Sim / Lab / Arena; torch and numpy are the real ones.
