@@ -7,9 +7,10 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): befo
 
 ### Added
 
-- `isaaclab_arena.plugins` entry points that register the embodiments and their retargeters, for an Arena that loads
-  plugins: installing the package is then enough, and Arena's `keyboard` and `spacemouse` can drive `so101_ik`. They
-  import without Kit, so spec tools that run without Isaac Sim load them too.
+- `isaaclab_arena.plugins` entry points that register the embodiments, the teleop devices and their retargeters, for
+  an Arena that loads plugins: installing the package is then enough, also to teleoperate with the SO-101's devices
+  or Arena's `keyboard` and `spacemouse`. They import without Kit, so spec tools that run without Isaac Sim load them
+  too.
 
 ### Fixed
 
@@ -41,7 +42,8 @@ First release on PyPI.
 ### Changed, for installs from earlier git commits
 
 - The distribution is now `isaaclab-so101` and the module `isaaclab_so101`, renamed from `arena-so101` and
-  `arena_so101`. Reinstall editable checkouts.
+  `arena_so101`. Reinstall editable checkouts, and uninstall `arena-so101`: installing `isaaclab-so101` leaves it
+  in place.
 - The cuRobo YAML's package section is now `isaaclab_so101:`, and the generator writes to
   `~/.cache/isaaclab_so101/curobo` by default.
 - The `gamepad` device is now `so101_gamepad`. Its joint-space layout is gone: pair it with `so101_abs_ik`.

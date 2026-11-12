@@ -49,6 +49,7 @@ from isaaclab_so101.constants import (
     SIM_JOINT_NAMES,
     TCP_OFFSET,
 )
+from isaaclab_so101.gamepad_device import reseed_natural_gamepads
 
 # The arm faces +X only because SO101_CFG.init_state yaws its base 90° (see assets.py). Arena writes the
 # Pose it is given straight into init_state and the root-pose reset event, so a plain Pose() would drop
@@ -163,12 +164,9 @@ class SO101EventCfg:
         },
     )
     # The natural gamepad holds an absolute TCP target; when the env resets itself (task success) the target
-    # has to follow, or the arm snaps home and lunges back to it. A no-op without a live gamepad.
-    # Named, not imported; Isaac Lab resolves the name as it builds the env. The gamepad module imports carb, which
-    # only Kit has, and this module must import without Kit: tools that read specs register the embodiments with it.
-    reseed_gamepad_target: EventTermCfg = EventTermCfg(
-        func="isaaclab_so101.gamepad_device:reseed_natural_gamepads", mode="reset"
-    )
+    # has to follow, or the arm snaps home and lunges back to it. Set only by so101_abs_ik, the embodiment that
+    # layout drives (Isaac Lab skips a None term).
+    reseed_gamepad_target: EventTermCfg | None = None
 
 
 @configclass
@@ -351,3 +349,4 @@ class SO101AbsIKEmbodiment(SO101IKEmbodiment):
         super().__init__(**kwargs)
         self.action_config.arm_action.controller.use_relative_mode = False  # 7-dim command: position + quaternion
         self.action_config.arm_action.scale = 1.0  # the scale multiplies the whole command, quaternion included
+        self.event_config.reseed_gamepad_target = EventTermCfg(func=reseed_natural_gamepads, mode="reset")
