@@ -3,6 +3,19 @@
 Notable changes to `isaaclab-so101`. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): before 1.0, a minor release may break the API.
 
+## [Unreleased]
+
+### Added
+
+- `isaaclab_arena.plugins` entry points that register the embodiments and their retargeters, for an Arena that loads
+  plugins: installing the package is then enough, and Arena's `keyboard` and `spacemouse` can drive `so101_ik`. They
+  import without Kit, so spec tools that run without Isaac Sim load them too.
+
+### Fixed
+
+- The embodiments register on Arena after its `registry_name` rename (isaac-sim/IsaacLab-Arena#1507), where 0.1.0
+  failed its assert. They set both `registry_name` and `name`, so they register on Arena before and after it.
+
 ## [0.1.0] - 2026-10-26
 
 First release on PyPI.
@@ -10,11 +23,7 @@ First release on PyPI.
 ### Added
 
 - Arena embodiments `so101_abs_joint`, `so101_rel_joint`, `so101_ik` and `so101_abs_ik`, and the teleop devices
-  `so101_leader` and `so101_gamepad`, all registered by `isaaclab_so101.register()`. The embodiments set both
-  `registry_name` and `name`, so they register on Arena before and after its `registry_name` rename.
-- `isaaclab_arena.plugins` entry points that register the embodiments and their retargeters, for an Arena that loads
-  plugins: installing the package is then enough, and Arena's `keyboard` and `spacemouse` can drive `so101_ik`. They
-  import without Kit, so spec tools that run without Isaac Sim load them too.
+  `so101_leader` and `so101_gamepad`, all registered by `isaaclab_so101.register()`.
 - The natural gamepad layout: with `so101_abs_ik`, the sticks drive the TCP in the arm's own coordinates, and a
   closed-form IK keeps every target reachable.
 - `isaaclab_so101.assets` for plain Isaac Lab without Arena: `SO101_CFG`, `SO101_HIGH_PD_CFG` and
@@ -41,4 +50,5 @@ First release on PyPI.
 - The license metadata is `(MIT OR Apache-2.0) AND Apache-2.0`, because the shipped NVIDIA SO-101 USD is
   Apache-2.0 only. `NOTICE` carries its attribution.
 
+[Unreleased]: https://github.com/art-e-fact/isaaclab-so101/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/art-e-fact/isaaclab-so101/releases/tag/v0.1.0
