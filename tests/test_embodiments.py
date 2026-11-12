@@ -4,6 +4,7 @@ import dataclasses
 import importlib
 import math
 import sys
+from importlib.metadata import entry_points
 from types import SimpleNamespace
 
 import pytest
@@ -69,3 +70,20 @@ def test_embodiments_import_without_kit(isaac, monkeypatch):
     for name in ("isaaclab_so101.gamepad_device", "isaaclab_so101.embodiments.so101"):
         monkeypatch.delitem(sys.modules, name)
     importlib.import_module("isaaclab_so101.embodiments.so101")
+
+
+@pytest.mark.parametrize(
+    ("name", "module"), [("so101", "isaaclab_so101.embodiments"), ("so101_retargeters", "isaaclab_so101.retargeters")]
+)
+def test_arena_plugin_entry_points_name_the_kitless_modules(name, module):
+    # Arena imports them on its first registry lookup, which can come before Kit starts.
+    (plugin,) = entry_points(group="isaaclab_arena.plugins", name=name)
+    assert plugin.value == module
+
+
+@pytest.mark.parametrize("cls_name", EMBODIMENTS)
+def test_registry_key_is_set_for_every_arena(isaac, cls_name):
+    cls = getattr(isaac.so101, cls_name)
+    # Arena asserts registry_name is set in the class body itself; before isaac-sim/IsaacLab-Arena#1507 it keyed on name.
+    assert "registry_name" in vars(cls)
+    assert cls.registry_name == cls.name
