@@ -60,6 +60,17 @@ def test_constructor_forwards_arena_kwargs_and_the_joint_pose(isaac, cls_name):
     assert isinstance(embodiment.gripper, isaac.so101.SO101Gripper)
 
 
+@pytest.mark.parametrize("cls_name", EMBODIMENTS)
+def test_external_camera_view_aims_the_external_camera(isaac, cls_name, monkeypatch):
+    calls = []
+    monkeypatch.setattr(isaac.so101.SO101EmbodimentBase, "set_external_camera_view", lambda self, eye, target: calls.append((eye, target)))
+    view = {"eye": (-0.1, -0.12, 0.42), "target": (0.19, 0.0, 0.07)}
+    aimed = getattr(isaac.so101, cls_name)(external_camera_view=view)
+    getattr(isaac.so101, cls_name)()  # the default aim stays
+    assert calls == [(view["eye"], view["target"])]
+    assert "external_camera_view" not in aimed.base_kwargs  # Arena's EmbodimentBase doesn't take it
+
+
 def test_absolute_ik_commands_a_pose_and_leaves_the_relative_one_alone(isaac):
     absolute, relative = isaac.so101.SO101AbsIKEmbodiment(), isaac.so101.SO101IKEmbodiment()
     assert absolute.name == "so101_abs_ik"

@@ -7,6 +7,8 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): befo
 
 ### Added
 
+- The `external_camera_view` option, `{"eye": ..., "target": ...}` in the placement frame, which aims the external
+  camera as `set_external_camera_view` does: an environment spec can set it in the embodiment's params.
 - `isaaclab_arena.plugins` entry points that register the embodiments, the teleop devices and their retargeters, for
   an Arena that loads plugins: installing the package is then enough, also to teleoperate with the SO-101's devices
   or Arena's `keyboard` and `spacemouse`. They import without Kit, so spec tools that run without Isaac Sim load them
