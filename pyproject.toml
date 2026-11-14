@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "isaaclab-so101"
-version = "0.1.0"
+version = "0.2.0"
 description = "SO-101 robot arm for Isaac Lab and Isaac Lab Arena: robot configs, embodiments, teleop devices, LeRobot recording, cuRobo config"
 readme = "README.md"
 # The code is MIT OR Apache-2.0; the NVIDIA SO-101 USD it ships is Apache-2.0 only (see NOTICE).

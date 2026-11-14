@@ -3,7 +3,7 @@
 Notable changes to `isaaclab-so101`. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): before 1.0, a minor release may break the API.
 
-## [Unreleased]
+## [0.2.0] - 2026-11-12
 
 ### Added
 
@@ -54,5 +54,5 @@ First release on PyPI.
 - The license metadata is `(MIT OR Apache-2.0) AND Apache-2.0`, because the shipped NVIDIA SO-101 USD is
   Apache-2.0 only. `NOTICE` carries its attribution.
 
-[Unreleased]: https://github.com/art-e-fact/isaaclab-so101/compare/v0.1.0...HEAD
+[0.2.0]: https://github.com/art-e-fact/isaaclab-so101/releases/tag/v0.2.0
 [0.1.0]: https://github.com/art-e-fact/isaaclab-so101/releases/tag/v0.1.0
