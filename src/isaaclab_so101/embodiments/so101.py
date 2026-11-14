@@ -8,7 +8,7 @@ Neither is baked into the USD.
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 import torch
@@ -217,8 +217,10 @@ class SO101EmbodimentBase(EmbodimentBase):
     """Shared SO-101 follower setup (workshop USD).
 
     Every episode reset returns the arm to ``init_state.joint_pos`` (the home pose, or ``initial_joint_pose``,
-    joint name → rad), plus uniform noise of ``±reset_joint_noise`` rad on each joint. Other keyword arguments
-    (``collision_mode``, ``spawn_cfg_addon``) go to Arena's ``EmbodimentBase``.
+    joint name → rad), plus uniform noise of ``±reset_joint_noise`` rad on each joint. ``external_camera_view``,
+    ``{"eye": (x, y, z), "target": (x, y, z)}``, aims ``external_camera`` as :meth:`set_external_camera_view`
+    does, so an environment spec can aim it. Other keyword arguments (``collision_mode``, ``spawn_cfg_addon``) go
+    to Arena's ``EmbodimentBase``.
 
     Poses, bounding boxes and meshes are in the placement frame, where the arm faces +X: ``Pose()``
     keeps it facing that way, and relations such as ``On(table)`` place it facing that way.
@@ -234,6 +236,7 @@ class SO101EmbodimentBase(EmbodimentBase):
         arm_mode: ArmMode | None = None,
         reset_joint_noise: float = 0.0,
         initial_joint_pose: Mapping[str, float] | None = None,
+        external_camera_view: Mapping[str, Sequence[float]] | None = None,
         **kwargs,
     ):
         super().__init__(enable_cameras, initial_pose, concatenate_observation_terms, arm_mode, **kwargs)
@@ -244,6 +247,8 @@ class SO101EmbodimentBase(EmbodimentBase):
         self.event_config = SO101EventCfg()
         self.event_config.reset_robot_joints.params["position_range"] = (-reset_joint_noise, reset_joint_noise)
         self.camera_config = SO101CameraCfg()
+        if external_camera_view is not None:
+            self.set_external_camera_view(**external_camera_view)
         # TiledCameraCfg is deprecated (isaaclab 4.6, Isaac Lab 3.0): CameraCfg renders tiled itself. Keep
         # Arena from converting the rig back to it.
         self.camera_config.set_use_tiled_camera(False)
