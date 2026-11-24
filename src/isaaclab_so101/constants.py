@@ -70,6 +70,10 @@ _DATA_DIR = Path(__file__).resolve().parent / "embodiments" / "data"
 # Robot USD shipped with the package.
 USD_PATH = _DATA_DIR / "SO-ARM101-USD.usd"
 
+# The OmniPBR material of the 3D-printed parts, relative to the robot's prim: every link's body, but not the servos
+# (Looks/material_sts3215) or the wrist camera. Its diffuse_color_constant is the arm's colour.
+PRINTED_MATERIAL = "Looks/material_a_3d_printed"
+
 # cuRobo robot config, shipped (regenerate with ``python -m isaaclab_so101.generate_curobo_config``). Its
 # ``urdf_path`` is relative to the file: load it with ``isaaclab_so101.curobo.robot_cfg``.
 CUROBO_ROBOT_YML = _DATA_DIR / "curobo" / "so101.yml"
