@@ -194,6 +194,8 @@ builds the `CameraCfg.OffsetCfg` for a camera of your own (points in the camera'
 
 ## Colour
 
+<img width="1920" height="1080" alt="so101_colour_grid" src="https://github.com/user-attachments/assets/576d9648-4bbf-4d7a-9b6b-dca2b2b21824" />
+
 The arm's colour is the material of its 3D-printed parts, `PRINTED_MATERIAL` under the robot prim; the servos stay
 dark. The SO-101 writes it at runtime through Isaac Lab's `VisualMaterial`, so Kit (RTX cameras and the viewport) and
 the Newton Warp renderer show the same colour. A colour is `'#rrggbb'`, sRGB as a colour picker gives it, or
