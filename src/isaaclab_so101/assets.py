@@ -140,7 +140,8 @@ SO101_WRIST_CAMERA_CFG = CameraCfg(
 
 SO101_COLOR_CFG = VisualMaterialCfg(prim_path="{ENV_REGEX_NS}/Robot/" + PRINTED_MATERIAL, spawn=None)
 """The printed parts' material as a scene entity whose colour Isaac Lab writes at runtime, to Kit (RTX cameras and the
-viewport) and to the Newton Warp renderer alike. Add it to the scene after the robot, which it is part of.
+viewport) and to the Newton Warp renderer alike. Add it to the scene after the robot, which it is part of. Its
+``prim_path`` assumes the robot is at ``{ENV_REGEX_NS}/Robot``.
 
 Each env has its own copy, but Kit draws every env in env_0's colour unless the robot spawns with
 ``make_uninstanceable=True``: the USD binds the material from inside instanced prims, which all envs share. Write the
