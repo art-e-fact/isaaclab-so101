@@ -52,3 +52,17 @@ def test_mapping_round_trip_and_endpoints():
 
     raw = torch.tensor([-37.0, 0.0, 12.5, 99.0, -80.0, 42.0])
     assert torch.allclose(sim_radians_to_motor_norm(motor_norm_to_sim_radians(raw)), raw, atol=1e-4)
+
+
+def test_printed_material_is_the_omnipbr_the_printed_parts_bind():
+    pytest.importorskip("pxr")
+    from pxr import Usd, UsdGeom, UsdShade
+
+    stage = Usd.Stage.Open(str(isaaclab_so101.USD_PATH))
+    material = stage.GetDefaultPrim().GetPath().AppendPath(isaaclab_so101.PRINTED_MATERIAL)
+    shader = UsdShade.Shader(stage.GetPrimAtPath(material.AppendChild("Shader")))
+    assert shader.GetSourceAssetSubIdentifier("mdl") == "OmniPBR"  # VisualMaterial's "color" is diffuse_color_constant
+    assert tuple(shader.GetInput("diffuse_color_constant").Get()) == pytest.approx((1.0, 0.82, 0.12))
+    meshes = Usd.PrimRange(stage.GetDefaultPrim(), Usd.TraverseInstanceProxies())
+    bound = [UsdShade.MaterialBindingAPI(p).ComputeBoundMaterial()[0].GetPath() for p in meshes if p.IsA(UsdGeom.Mesh)]
+    assert bound.count(material) == 12  # the visuals; the colliders bind DefaultMaterial

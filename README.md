@@ -45,6 +45,7 @@ LeRobot dataset recording and a cuRobo planning config.
   - [Constants without Isaac Sim](#constants-without-isaac-sim)
 - [Embodiments](#embodiments)
 - [Cameras](#cameras)
+- [Colour](#colour)
 - [Teleoperation](#teleoperation)
   - [Natural gamepad layout](#natural-gamepad-layout)
   - [Leader arm](#leader-arm)
@@ -163,7 +164,7 @@ config (see [cuRobo planning assets](#curobo-planning-assets)).
 - **Resets.** Every episode reset returns the arm to `init_state.joint_pos`: the home pose, or whatever you set with
   `set_joint_initial_pos`. Pass `reset_joint_noise=<rad>` to the constructor to add uniform noise to each joint.
 - **Constructor options.** `initial_joint_pose={"Jaw": 0.5, ...}` overrides the home pose for spawning and resets.
-  Other keywords (`collision_mode`, `spawn_cfg_addon`) go to Arena's `EmbodimentBase`.
+  `color="#d0201f"` paints the arm (see [Colour](#colour)). Other keywords (`collision_mode`, `spawn_cfg_addon`) go to Arena's `EmbodimentBase`.
 - **Gripper.** `get_gripper()` returns an Arena `ParallelJawGripper`: `get_jaw_gap_m` from the Jaw angle and the jaw
   geometry, `get_position_w` at the TCP.
 - **Placement.** The arm faces +X. `set_initial_pose(Pose(position_xyz=...))` moves it and keeps it facing +X, and so
@@ -190,6 +191,50 @@ config (see [cuRobo planning assets](#curobo-planning-assets)).
 
 Both carry Arena's camera extrinsics and intrinsics variations. `isaaclab_so101.cameras.look_at_offset(eye, target)`
 builds the `CameraCfg.OffsetCfg` for a camera of your own (points in the camera's parent frame).
+
+## Colour
+
+The arm's colour is the material of its 3D-printed parts, `PRINTED_MATERIAL` under the robot prim; the servos stay
+dark. The SO-101 writes it at runtime through Isaac Lab's `VisualMaterial`, so Kit (RTX cameras and the viewport) and
+the Newton Warp renderer show the same colour. A colour is `'#rrggbb'`, sRGB as a colour picker gives it, or
+`(r, g, b)` in [0, 1], linear as Isaac Lab's material configs take it.
+
+In Arena, a spec paints the arm with the embodiment's `color` param, and an Experiment draws a colour for each env at
+every reset with the `color` variation, recorded per episode like any variation's draws:
+
+```yaml
+embodiment:                      # environment spec
+  registry_name: so101_ik
+  params:
+    color: '#d0201f'
+```
+
+```yaml
+variations:                      # Experiment Run
+  so101_ik.color.enabled: true
+  so101_ik.color.colors: ['#d0201f', '#202020', [0.9, 0.9, 0.9]]
+```
+
+In Isaac Lab, add `SO101_COLOR_CFG` to the scene after the robot, then paint with an event term or, from an
+evaluation loop, at once:
+
+```python
+from isaaclab_so101.assets import SO101_CFG, SO101_COLOR_CFG, color_event, write_color
+
+class SceneCfg(InteractiveSceneCfg):
+    robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    robot_color = SO101_COLOR_CFG
+
+class EventCfg:
+    paint = color_event(["#d0201f"], mode="startup")  # or a list to draw from at every reset
+
+write_color(env.scene["robot_color"], "#202020")  # every env, or env_ids=...; only after sim.reset()
+```
+
+The robot's visuals are instanced, and Kit draws every instance with env_0's material: different colours in different
+envs need the robot spawned with `make_uninstanceable=True`, as the `color` variation does. The Warp renderer colours
+each env either way. Don't also edit the material through USD once the sim runs: Kit's next write then faults the
+GPU. `arena-view` draws the USD's own yellow, since the colour is written only when the env runs.
 
 ## Teleoperation
 

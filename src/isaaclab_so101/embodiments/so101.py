@@ -3,17 +3,22 @@
 Cameras are Python ``CameraCfg`` sensors: wrist RGB on ``Robot/gripper/gripper_cam``, plus an
 ``external_camera`` on the base link (over-shoulder / table view), so it moves with the robot.
 Neither is baked into the USD.
+
+The arm's colour is its printed parts' material, which a spec sets with the ``color`` param and an Experiment draws
+anew at every reset with the ``color`` variation (``so101_ik.color``). Both write it at runtime, as
+``isaaclab_so101.assets.color_event`` does, so Kit and the Warp renderer show the same colour.
 """
 
 from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import torch
 import isaaclab.envs.mdp as mdp_isaac_lab
 import isaaclab.sim as sim_utils
+from isaaclab.assets import VisualMaterialCfg
 from isaaclab.assets.articulation import ArticulationCfg
 from isaaclab.controllers.differential_ik_cfg import DifferentialIKControllerCfg
 from isaaclab.envs.mdp.actions.actions_cfg import (
@@ -37,8 +42,17 @@ from isaaclab_arena.embodiments.embodiment_base import EmbodimentBase
 from isaaclab_arena.embodiments.gripper import ParallelJawGripper
 from isaaclab_arena.utils.cameras import ArenaCameraCfg
 from isaaclab_arena.utils.pose import Pose, PosePerEnv
+from isaaclab_arena.variations.choice_sampler import ChoiceSamplerCfg
+from isaaclab_arena.variations.variation_base import RunTimeVariationBase, VariationBaseCfg
 
-from isaaclab_so101.assets import SO101_CFG, SO101_HIGH_PD_CFG, SO101_WRIST_CAMERA_CFG
+from isaaclab_so101.assets import (
+    SO101_CFG,
+    SO101_COLOR_CFG,
+    SO101_HIGH_PD_CFG,
+    SO101_WRIST_CAMERA_CFG,
+    color_event,
+    linear_rgb,
+)
 from isaaclab_so101.cameras import look_at_offset
 from isaaclab_so101.constants import (
     ARM_JOINT_NAMES,
@@ -75,6 +89,10 @@ class SO101SceneCfg:
             ),
         ],
     )
+
+    # The printed parts' material, which a colour is written to. Set by set_color and the color variation; the scene
+    # skips it while None.
+    robot_color: VisualMaterialCfg | None = None
 
 
 @configclass
@@ -167,6 +185,8 @@ class SO101EventCfg:
     # has to follow, or the arm snaps home and lunges back to it. Set only by so101_abs_ik, the embodiment that
     # layout drives (Isaac Lab skips a None term).
     reseed_gamepad_target: EventTermCfg | None = None
+    # Paints the arm the colour the spec's color param names, once the env starts. Set by set_color.
+    robot_color: EventTermCfg | None = None
 
 
 @configclass
@@ -213,14 +233,71 @@ class SO101Gripper(ParallelJawGripper):
         return world.get_frame_position_w(self.frame_transformer_name, self.target_frame_name)
 
 
+@configclass
+class SO101ColorVariationCfg(VariationBaseCfg):
+    """Configuration for SO101ColorVariation."""
+
+    colors: list = field(default_factory=list)
+    """Colours to draw from, each ``'#rrggbb'`` (sRGB) or ``[r, g, b]`` (linear), as ``linear_rgb`` reads them.
+    Required when enabled; list a colour more than once to draw it more often."""
+
+    sampler_cfg: ChoiceSamplerCfg = field(default_factory=ChoiceSamplerCfg)
+
+
+class SO101ColorVariation(RunTimeVariationBase):
+    """At every reset, paint the arm of each env that resets a colour drawn from ``cfg.colors``.
+
+    It spawns the robot uninstanced, so that Kit draws each env in its own colour; the Warp renderer does either way.
+
+    Args:
+        embodiment: The SO-101 whose arm it paints.
+        cfg: The colours. By default the variation is off.
+        name: Name of the variation on the embodiment.
+    """
+
+    cfg: SO101ColorVariationCfg
+
+    def __init__(self, embodiment: SO101EmbodimentBase, cfg: SO101ColorVariationCfg | None = None, name: str = "color"):
+        super().__init__(cfg=cfg if cfg is not None else SO101ColorVariationCfg(), name=name)
+        self._embodiment = embodiment
+
+    def _prepare_at_build_time(self) -> None:
+        assert self.cfg.colors, (
+            f"The SO-101's '{self.name}' variation is enabled but lists no colours; set, for example,"
+            f" {self._embodiment.registry_name}.{self.name}.colors: ['#d0201f', '#202020']."
+        )
+        for color in self.cfg.colors:
+            linear_rgb(color)  # a typo fails the build, not the first reset
+        self._embodiment.scene_config.robot_color = SO101_COLOR_CFG
+        # Arena applies spawn addons when it collects the scene config, after this, so they survive so101_ik
+        # replacing scene_config.robot.
+        self._embodiment.spawn_cfg_addon.setdefault("robot", {})["make_uninstanceable"] = True
+
+    def build_event_cfg(self) -> tuple[str, EventTermCfg]:
+        return "robot_color_variation", EventTermCfg(
+            func=write_drawn_colors,
+            mode="reset",
+            params={"material_cfg": SceneEntityCfg("robot_color"), "colors": self.cfg.colors, "sampler": self._sampler},
+        )
+
+
+def write_drawn_colors(env, env_ids: torch.Tensor, material_cfg: SceneEntityCfg, colors: list, sampler) -> None:
+    """Event term: paint the arm of each of ``env_ids`` a colour ``sampler`` draws from ``colors``. The sampler hands
+    each draw, as listed, to Arena's variation recorder."""
+    material = env.scene[material_cfg.name]
+    drawn = sampler.sample(len(env_ids), list(colors), env_ids=env_ids)
+    rgb = torch.tensor([linear_rgb(c) for c in drawn], device=material.device)
+    material.write_channels([material], {"color": rgb[None]}, env_ids)
+
+
 class SO101EmbodimentBase(EmbodimentBase):
     """Shared SO-101 follower setup (workshop USD).
 
     Every episode reset returns the arm to ``init_state.joint_pos`` (the home pose, or ``initial_joint_pose``,
     joint name → rad), plus uniform noise of ``±reset_joint_noise`` rad on each joint. ``external_camera_view``,
     ``{"eye": (x, y, z), "target": (x, y, z)}``, aims ``external_camera`` as :meth:`set_external_camera_view`
-    does, so an environment spec can aim it. Other keyword arguments (``collision_mode``, ``spawn_cfg_addon``) go
-    to Arena's ``EmbodimentBase``.
+    does, so an environment spec can aim it. ``color`` paints the arm as :meth:`set_color` does. Other keyword
+    arguments (``collision_mode``, ``spawn_cfg_addon``) go to Arena's ``EmbodimentBase``.
 
     Poses, bounding boxes and meshes are in the placement frame, where the arm faces +X: ``Pose()``
     keeps it facing that way, and relations such as ``On(table)`` place it facing that way.
@@ -237,6 +314,7 @@ class SO101EmbodimentBase(EmbodimentBase):
         reset_joint_noise: float = 0.0,
         initial_joint_pose: Mapping[str, float] | None = None,
         external_camera_view: Mapping[str, Sequence[float]] | None = None,
+        color: str | Sequence[float] | None = None,
         **kwargs,
     ):
         super().__init__(enable_cameras, initial_pose, concatenate_observation_terms, arm_mode, **kwargs)
@@ -253,6 +331,9 @@ class SO101EmbodimentBase(EmbodimentBase):
         # Arena from converting the rig back to it.
         self.camera_config.set_use_tiled_camera(False)
         self.add_camera_variations(self.camera_config)
+        self.add_variation(SO101ColorVariation(self))
+        if color is not None:
+            self.set_color(color)
         self.observation_config = SO101ObservationsCfg()
         if concatenate_observation_terms:
             self.observation_config.policy.concatenate_terms = True
@@ -268,6 +349,12 @@ class SO101EmbodimentBase(EmbodimentBase):
     def get_reach_body_name(self) -> str:
         """Rigid body used for reach rewards (workshop USD link name)."""
         return "gripper"
+
+    def set_color(self, color: str | Sequence[float]) -> None:
+        """Paint the arm's printed parts ``color`` in every env once the env starts: ``'#rrggbb'`` (sRGB) or
+        ``(r, g, b)`` (linear), as ``isaaclab_so101.assets.linear_rgb`` reads them. The servos stay dark."""
+        self.scene_config.robot_color = SO101_COLOR_CFG
+        self.event_config.robot_color = color_event([color], mode="startup")
 
     def set_external_camera_view(self, eye: tuple[float, float, float], target: tuple[float, float, float]) -> None:
         """Aim ``external_camera`` from ``eye`` at ``target``, both relative to the robot base with the arm
