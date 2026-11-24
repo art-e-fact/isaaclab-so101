@@ -7,6 +7,12 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html): befo
 
 ### Added
 
+- The arm's colour, written at runtime so that Kit and the Newton Warp renderer show it alike: the embodiments' `color`
+  param and `set_color`, a `color` variation that draws a colour per env at every reset (`so101_ik.color.colors`),
+  and for Isaac Lab `SO101_COLOR_CFG`, `color_event`, `write_color` and `linear_rgb` in `isaaclab_so101.assets`. A
+  colour is `'#rrggbb'` (sRGB) or `(r, g, b)` (linear).
+- The `external_camera_view` option, `{"eye": ..., "target": ...}` in the placement frame, which aims the external
+  camera as `set_external_camera_view` does: an environment spec can set it in the embodiment's params.
 - `isaaclab_arena.plugins` entry points that register the embodiments, the teleop devices and their retargeters, for
   an Arena that loads plugins: installing the package is then enough, also to teleoperate with the SO-101's devices
   or Arena's `keyboard` and `spacemouse`. They import without Kit, so spec tools that run without Isaac Sim load them

@@ -60,6 +60,17 @@ def test_constructor_forwards_arena_kwargs_and_the_joint_pose(isaac, cls_name):
     assert isinstance(embodiment.gripper, isaac.so101.SO101Gripper)
 
 
+@pytest.mark.parametrize("cls_name", EMBODIMENTS)
+def test_external_camera_view_aims_the_external_camera(isaac, cls_name, monkeypatch):
+    calls = []
+    monkeypatch.setattr(isaac.so101.SO101EmbodimentBase, "set_external_camera_view", lambda self, eye, target: calls.append((eye, target)))
+    view = {"eye": (-0.1, -0.12, 0.42), "target": (0.19, 0.0, 0.07)}
+    aimed = getattr(isaac.so101, cls_name)(external_camera_view=view)
+    getattr(isaac.so101, cls_name)()  # the default aim stays
+    assert calls == [(view["eye"], view["target"])]
+    assert "external_camera_view" not in aimed.base_kwargs  # Arena's EmbodimentBase doesn't take it
+
+
 def test_absolute_ik_commands_a_pose_and_leaves_the_relative_one_alone(isaac):
     absolute, relative = isaac.so101.SO101AbsIKEmbodiment(), isaac.so101.SO101IKEmbodiment()
     assert absolute.name == "so101_abs_ik"
@@ -116,3 +127,56 @@ def test_registry_key_is_set_for_every_arena(isaac, cls_name):
     # Arena asserts registry_name is set in the class body itself; before isaac-sim/IsaacLab-Arena#1507 it keyed on name.
     assert "registry_name" in vars(cls)
     assert cls.registry_name == cls.name
+
+
+@pytest.mark.parametrize("cls_name", EMBODIMENTS)
+def test_color_param_paints_the_arm_once_the_env_starts(isaac, cls_name):
+    plain = getattr(isaac.so101, cls_name)()
+    red = getattr(isaac.so101, cls_name)(color="#ff0000")
+
+    assert plain.scene_config.robot_color is None and plain.get_events_cfg().robot_color is None
+    # so101_ik replaces scene_config.robot after the base __init__; the colour lives beside it and stays.
+    assert red.scene_config.robot_color is isaac.assets.SO101_COLOR_CFG
+    term = red.get_events_cfg().robot_color
+    assert term.mode == "startup"
+    assert term.params["channels"]["color"]["choices"] == [(1.0, 0.0, 0.0)]
+    assert "color" not in red.base_kwargs  # Arena's EmbodimentBase doesn't take it
+
+
+@pytest.mark.parametrize("cls_name", EMBODIMENTS)
+def test_color_variation_paints_each_resetting_env_a_drawn_colour(isaac, cls_name):
+    import torch
+
+    embodiment = getattr(isaac.so101, cls_name)()
+    variation = embodiment.variations["color"]
+    assert not variation.cfg.enabled and embodiment.scene_config.robot_color is None
+
+    variation.cfg.colors = ["#ff0000", [0.0, 0.0, 0.5]]
+    variation._prepare_at_build_time()
+    assert embodiment.scene_config.robot_color is isaac.assets.SO101_COLOR_CFG
+    # Instanced, the arm would show env_0's colour in every env in Kit.
+    assert embodiment.spawn_cfg_addon == {"robot": {"make_uninstanceable": True}}
+    name, term = variation.build_event_cfg()
+    assert (name, term.mode, term.params["material_cfg"].name) == ("robot_color_variation", "reset", "robot_color")
+    assert term.params["sampler"] is variation._sampler  # Arena's recorder listens to it
+
+    writes = []
+    material = SimpleNamespace(device="cpu")
+    material.write_channels = lambda materials, channels, env_ids: writes.append((materials, channels, env_ids))
+    env = SimpleNamespace(scene={"robot_color": material})
+    sampler = SimpleNamespace(sample=lambda n, choices, env_ids: [choices[1], choices[0]][:n])
+    env_ids = torch.tensor([3, 5])
+    term.func(env, env_ids, **{**term.params, "sampler": sampler})
+
+    ((materials, channels, written_ids),) = writes
+    assert materials == [material] and written_ids is env_ids
+    assert torch.equal(channels["color"], torch.tensor([[[0.0, 0.0, 0.5], [1.0, 0.0, 0.0]]]))
+
+
+def test_color_variation_without_colours_fails_the_build(isaac):
+    variation = isaac.so101.SO101IKEmbodiment().variations["color"]
+    with pytest.raises(AssertionError, match=r"so101_ik\.color\.colors"):
+        variation._prepare_at_build_time()
+    variation.cfg.colors = ["#ff00"]
+    with pytest.raises(AssertionError, match="rrggbb"):
+        variation._prepare_at_build_time()

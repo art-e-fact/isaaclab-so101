@@ -83,6 +83,8 @@ def isaac(monkeypatch):
         def __init__(self, *args, **kwargs):
             self.event_config = None
             self.base_kwargs = kwargs  # what the SO-101 classes pass through
+            self.spawn_cfg_addon = copy.deepcopy(kwargs.get("spawn_cfg_addon") or {})
+            self.variations = {}
 
         def get_events_cfg(self):
             return self.event_config
@@ -90,8 +92,20 @@ def isaac(monkeypatch):
         def add_camera_variations(self, camera_rig):
             pass
 
+        def add_variation(self, variation):
+            self.variations[variation.name] = variation
+
         def set_joint_initial_pos(self, joint_pos):
             self.joint_initial_pos = dict(joint_pos)
+
+    @dataclasses.dataclass
+    class VariationBaseCfg:
+        enabled: bool = False
+
+    class RunTimeVariationBase:
+        def __init__(self, cfg, name):
+            self.cfg, self.name = cfg, name
+            self._sampler = MagicMock(name=f"{name} sampler")
 
     class ParallelJawGripper:
         def get_opening_width_m(self, world):
@@ -126,6 +140,10 @@ def isaac(monkeypatch):
         "isaaclab_arena.embodiments.embodiment_base": {"EmbodimentBase": EmbodimentBase},
         "isaaclab_arena.embodiments.gripper": {"ParallelJawGripper": ParallelJawGripper},
         "isaaclab_arena.utils.cameras": {"ArenaCameraCfg": ArenaCameraCfg},
+        "isaaclab_arena.variations.variation_base": {
+            "RunTimeVariationBase": RunTimeVariationBase,
+            "VariationBaseCfg": VariationBaseCfg,
+        },
         "isaaclab.actuators": {},
         "isaaclab.assets.articulation": {},
         "isaaclab.controllers.differential_ik_cfg": {},
@@ -137,6 +155,7 @@ def isaac(monkeypatch):
         "isaaclab.utils.math": {},
         "isaaclab_arena.embodiments.common.arm_mode": {},
         "isaaclab_arena.utils.pose": {},
+        "isaaclab_arena.variations.choice_sampler": {},
     }
     # carb.input is unavailable while the isaaclab_so101 modules import, as in Isaac Sim before Kit loads its input
     # plugin: a device must look GamepadInput up when constructed, not at import.

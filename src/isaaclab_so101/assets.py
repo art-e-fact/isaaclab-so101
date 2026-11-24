@@ -1,10 +1,12 @@
-"""SO-101 configs for Isaac Lab: the arm and its wrist camera. Imports Isaac Lab, not Arena.
+"""SO-101 configs for Isaac Lab: the arm, its wrist camera and its colour. Imports Isaac Lab, not Arena.
 
 Like ``isaaclab_assets``, import this after the simulation app starts::
 
     from isaaclab_so101.assets import SO101_CFG
 
     robot = SO101_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+
+To paint the arm, add ``SO101_COLOR_CFG`` to the scene after the robot and use ``color_event`` or ``write_color``.
 
 The arm faces +X: ``init_state`` yaws the USD base 90° about Z, so world +X is the base frame's -Y.
 The workshop USD authors that yaw on its default prim; Isaac Lab's spawner replaces the prim's transform
@@ -15,15 +17,19 @@ USD and joint names follow the NVIDIA Sim-to-Real SO-101 workshop (``Rotation`` 
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 
 import torch
+import isaaclab.envs.mdp as mdp_isaac_lab
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
+from isaaclab.assets import VisualMaterialCfg
 from isaaclab.assets.articulation import ArticulationCfg
+from isaaclab.managers import EventTermCfg, SceneEntityCfg
 from isaaclab.sensors import CameraCfg
 from isaaclab.utils.math import quat_from_euler_xyz
 
-from isaaclab_so101.constants import HOME_JOINT_POS, USD_PATH
+from isaaclab_so101.constants import HOME_JOINT_POS, PRINTED_MATERIAL, USD_PATH
 
 
 def _quat_xyzw_from_euler_deg(roll: float, pitch: float, yaw: float) -> tuple[float, float, float, float]:
@@ -131,3 +137,45 @@ SO101_WRIST_CAMERA_CFG = CameraCfg(
     ),
 )
 """The workshop's wrist camera. Its ``prim_path`` assumes the robot is at ``{ENV_REGEX_NS}/Robot``."""
+
+SO101_COLOR_CFG = VisualMaterialCfg(prim_path="{ENV_REGEX_NS}/Robot/" + PRINTED_MATERIAL, spawn=None)
+"""The printed parts' material as a scene entity whose colour Isaac Lab writes at runtime, to Kit (RTX cameras and the
+viewport) and to the Newton Warp renderer alike. Add it to the scene after the robot, which it is part of.
+
+Each env has its own copy, but Kit draws every env in env_0's colour unless the robot spawns with
+``make_uninstanceable=True``: the USD binds the material from inside instanced prims, which all envs share. Write the
+colour only through this entity, never through USD as well once the sim runs: Kit's writer would then index Fabric
+prims that USD resynced, and crash the GPU."""
+
+
+def linear_rgb(color: str | Sequence[float]) -> tuple[float, float, float]:
+    """``color`` as materials hold it, in linear RGB. ``'#rrggbb'`` is sRGB, as a colour picker gives it, and is
+    converted. ``(r, g, b)`` in [0, 1] is taken as linear already, as Isaac Lab's material configs take colours."""
+    if isinstance(color, str):
+        digits = color.removeprefix("#")
+        assert len(digits) == 6, f"A colour string is '#rrggbb'; got {color!r}."
+        srgb = (int(digits[i : i + 2], 16) / 255 for i in (0, 2, 4))
+        return tuple(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in srgb)
+    rgb = tuple(float(c) for c in color)
+    assert len(rgb) == 3 and all(0.0 <= c <= 1.0 for c in rgb), f"A colour is (r, g, b) in [0, 1]; got {color!r}."
+    return rgb
+
+
+def color_event(colors: Sequence[str | Sequence[float]], mode: str = "reset", material: str = "robot_color") -> EventTermCfg:
+    """An event term that paints the printed parts of each env it runs on a colour drawn from ``colors``, each as
+    :func:`linear_rgb` reads it; one colour paints every env that colour. ``material`` names the scene's
+    :data:`SO101_COLOR_CFG` entity. Mode ``"startup"`` paints once, ``"reset"`` at every reset."""
+    choices = [linear_rgb(c) for c in colors]
+    return EventTermCfg(
+        func=mdp_isaac_lab.randomize_visual_material,
+        mode=mode,
+        params={"materials": SceneEntityCfg(material), "channels": {"color": {"choices": choices}}},
+    )
+
+
+def write_color(material, color: str | Sequence[float], env_ids: torch.Tensor | None = None) -> None:
+    """Paint the printed parts of ``env_ids``, or of every env, ``color`` now. ``material`` is the scene's
+    :data:`SO101_COLOR_CFG` entity, ``env.scene["robot_color"]``; it takes writes once ``sim.reset()`` has run."""
+    n = material.num_instances if env_ids is None else len(env_ids)
+    rgb = torch.tensor(linear_rgb(color), device=material.device).repeat(n, 1)
+    material.write_channels([material], {"color": rgb[None]}, env_ids)
